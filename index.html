@@ -95,6 +95,12 @@
       text-decoration: none;
       cursor: pointer;
     }
+    #sidebar ul li button {
+      all: unset;
+      cursor: pointer;
+      color: #fff;
+      font-size: 1rem;
+    }
 
     #open-sidebar {
       position: fixed;
@@ -133,7 +139,7 @@
       <li><a onclick="showDashboard()">Dashboard</a></li>
       <li><a onclick="showSettings()">Settings</a></li>
       <li><a href="#">Submit Debt</a></li>
-      <li><a onclick="logout()">Logout</a></li>
+      <li><button onclick="logout()">Logout</button></li>
     </ul>
   </div>
   <button id="open-sidebar">&#9776;</button>
