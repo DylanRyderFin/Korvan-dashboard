@@ -95,12 +95,6 @@
       text-decoration: none;
       cursor: pointer;
     }
-    #sidebar ul li button {
-      all: unset;
-      cursor: pointer;
-      color: #fff;
-      font-size: 1rem;
-    }
 
     #open-sidebar {
       position: fixed;
@@ -115,6 +109,7 @@
       z-index: 1001;
       transition: opacity 0.3s ease;
       cursor: pointer;
+      display: none; /* hidden initially */
     }
 
     #close-sidebar {
@@ -133,29 +128,29 @@
 
   <!-- Sidebar -->
   <div id="sidebar">
-    <button id="close-sidebar">&times;</button>
+    <button id="close-sidebar" aria-label="Close sidebar">&times;</button>
     <h2>Menu</h2>
     <ul>
       <li><a onclick="showDashboard()">Dashboard</a></li>
       <li><a onclick="showSettings()">Settings</a></li>
       <li><a href="#">Submit Debt</a></li>
-      <li><button onclick="logout()">Logout</button></li>
+      <li><a onclick="logout()">Logout</a></li>
     </ul>
   </div>
-  <button id="open-sidebar">&#9776;</button>
+  <button id="open-sidebar" aria-label="Open sidebar">&#9776;</button>
 
   <!-- Login + Signup -->
   <div id="login-section">
     <h2>Login to Fag Hub</h2>
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password" />
-    <button id="login-btn">Login</button>
+    <input id="email" type="email" placeholder="Email" autocomplete="username" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="login-btn" type="button">Login</button>
 
     <h3>Or Sign Up</h3>
-    <input id="signup-name" type="text" placeholder="Name" />
-    <input id="signup-email" type="email" placeholder="New Email" />
-    <input id="signup-password" type="password" placeholder="New Password" />
-    <button id="signup-btn">Sign Up</button>
+    <input id="signup-name" type="text" placeholder="Name" autocomplete="name" />
+    <input id="signup-email" type="email" placeholder="New Email" autocomplete="email" />
+    <input id="signup-password" type="password" placeholder="New Password" autocomplete="new-password" />
+    <button id="signup-btn" type="button">Sign Up</button>
 
     <div id="login-message" style="color:#f66; margin-top:0.5rem;"></div>
   </div>
@@ -185,7 +180,7 @@
       <div class="label">Dom AI Chat:</div>
       <div class="chatlog" id="chat-log"></div>
       <input id="user-input" placeholder="Type to your dom..." />
-      <button onclick="sendMessage()">Send</button>
+      <button onclick="sendMessage()" type="button">Send</button>
     </div>
   </div>
 
@@ -220,6 +215,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Show dashboard info
     function updateDashboard(name = "User") {
       document.getElementById('display-name').textContent = name;
       document.getElementById('profile-name').textContent = name;
@@ -232,6 +228,7 @@
       document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
     }
 
+    // Chat send message (just append)
     function sendMessage() {
       const input = document.getElementById('user-input');
       const log = document.getElementById('chat-log');
@@ -242,50 +239,36 @@
       log.scrollTop = log.scrollHeight;
     }
 
+    // Logout function
     async function logout() {
-      await signOut(auth);
-      showLogin();
+      try {
+        await signOut(auth);
+        showLogin();
+      } catch (e) {
+        alert("Logout error: " + e.message);
+      }
     }
 
-    document.getElementById('signup-btn').onclick = async () => {
-      const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", userCred.user.uid), { name });
-      } catch (error) {
-        document.getElementById('login-message').textContent = error.message;
-      }
-    };
-
-    document.getElementById('login-btn').onclick = async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        document.getElementById('login-message').textContent = error.message;
-      }
-    };
-
+    // Show/hide views
     function showDashboard() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       document.getElementById('open-sidebar').style.display = 'block';
     }
-
     function showLogin() {
       document.getElementById('login-section').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('open-sidebar').style.display = 'none';
+      document.getElementById('login-message').textContent = "";
     }
 
+    // Settings stub
     function showSettings() {
       alert("Settings page coming soon.");
     }
 
+    // Sidebar open/close buttons
     document.getElementById('open-sidebar').onclick = () => {
       document.getElementById('sidebar').classList.add('open');
     };
@@ -293,8 +276,44 @@
       document.getElementById('sidebar').classList.remove('open');
     };
 
+    // Signup button
+    document.getElementById('signup-btn').onclick = async () => {
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      if (!name || !email || !password) {
+        document.getElementById('login-message').textContent = "Fill out all signup fields.";
+        return;
+      }
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", userCred.user.uid), { name });
+        document.getElementById('login-message').textContent = "Signup successful! You can now log in.";
+      } catch (error) {
+        document.getElementById('login-message').textContent = error.message;
+      }
+    };
+
+    // Login button
+    document.getElementById('login-btn').onclick = async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) {
+        document.getElementById('login-message').textContent = "Enter email and password.";
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        document.getElementById('login-message').textContent = "";
+      } catch (error) {
+        document.getElementById('login-message').textContent = error.message;
+      }
+    };
+
+    // Auth state listener
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Get user name from Firestore
         const docSnap = await getDoc(doc(db, "users", user.uid));
         const name = docSnap.exists() ? docSnap.data().name : "User";
         updateDashboard(name);
@@ -303,6 +322,12 @@
         showLogin();
       }
     });
+
+    // Expose logout to global for inline onclick usage
+    window.logout = logout;
+    window.showDashboard = showDashboard;
+    window.showSettings = showSettings;
+    window.sendMessage = sendMessage;
   </script>
 </body>
 </html>
