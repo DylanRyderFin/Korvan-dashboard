@@ -289,11 +289,12 @@
       signInWithEmailAndPassword(auth, email, password)
         .catch((error) => {
           loginMessage.textContent = error.message;
+          console.error("Login error:", error);
         });
     };
 
     logoutBtn.onclick = () => {
-      signOut(auth);
+      signOut(auth).catch(e => console.error("Logout error:", e));
     };
 
     const signupBtn = document.getElementById('signup-btn');
@@ -305,79 +306,82 @@
         createUserWithEmailAndPassword(auth, email, password)
           .then(() => {
             loginMessage.textContent = 'Sign-up successful. You are now logged in.';
+            console.log("Sign-up success");
           })
           .catch((error) => {
             loginMessage.textContent = error.message;
+            console.error("Sign-up error:", error);
           });
       };
     }
 
     async function fetchDisplayName(uid) {
+      console.log("Fetching display name for UID:", uid);
       const docRef = doc(db, "users", uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
+        console.log("Display name found:", docSnap.data().displayName);
         return docSnap.data().displayName || null;
       }
+      console.log("No display name found");
       return null;
     }
 
     async function saveDisplayName(uid, name) {
       try {
         await setDoc(doc(db, "users", uid), { displayName: name });
-        return true;
+        console.log("Display name saved:", name);
       } catch (e) {
         console.error("Error saving display name:", e);
-        return false;
       }
+    }
+
+    setNameBtn.onclick = async () => {
+      const name = displayNameInput.value.trim();
+      if (!name) {
+        setNameMessage.textContent = "Please enter a valid name.";
+        return;
+      }
+      setNameMessage.textContent = '';
+      const user = auth.currentUser;
+      if (user) {
+        await saveDisplayName(user.uid, name);
+        updateDisplayNameUI(name);
+        setNameSection.style.display = "none";
+        dashboard.style.display = "block";
+      }
+    };
+
+    function updateDisplayNameUI(name) {
+      displayNameSpan.textContent = name;
+      profileNameSpan.textContent = name;
     }
 
     onAuthStateChanged(auth, async (user) => {
+      console.log("Auth state changed. User:", user);
       if (user) {
-        loginSection.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
-
-        // Fetch display name from Firestore
-        const name = await fetchDisplayName(user.uid);
-
-        if (!name) {
-          // No display name yet, show set-name UI
-          setNameSection.style.display = 'block';
-          dashboard.style.display = 'none';
-          setNameMessage.textContent = '';
-          displayNameInput.value = '';
-          setNameBtn.onclick = async () => {
-            const newName = displayNameInput.value.trim();
-            if (!newName) {
-              setNameMessage.textContent = "Please enter a valid name.";
-              return;
-            }
-            const success = await saveDisplayName(user.uid, newName);
-            if (success) {
-              setNameSection.style.display = 'none';
-              loadDashboardWithName(newName);
-            } else {
-              setNameMessage.textContent = "Failed to save name. Try again.";
-            }
-          };
+        loginSection.style.display = "none";
+        const displayName = await fetchDisplayName(user.uid);
+        if (displayName) {
+          updateDisplayNameUI(displayName);
+          setNameSection.style.display = "none";
+          dashboard.style.display = "block";
+          updateDashboard();
         } else {
-          // Display name exists, show dashboard
-          setNameSection.style.display = 'none';
-          loadDashboardWithName(name);
+          setNameSection.style.display = "block";
+          dashboard.style.display = "none";
         }
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
       } else {
-        loginSection.style.display = 'block';
-        dashboard.style.display = 'none';
-        setNameSection.style.display = 'none';
-        logoutBtn.style.display = 'none';
+        loginSection.style.display = "block";
+        dashboard.style.display = "none";
+        setNameSection.style.display = "none";
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
       }
     });
-
-    function loadDashboardWithName(name) {
-      dashboard.style.display = 'block';
-      displayNameSpan.textContent = name;
-      profileNameSpan.textContent = name;
-      updateDashboard();
-    }
   </script>
+
 </body>
 </html>
