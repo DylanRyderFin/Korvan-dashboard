@@ -11,12 +11,10 @@
       font-family: 'Arial', sans-serif;
       padding: 2rem;
     }
-
     h1 {
       font-size: 2rem;
       color: #ff69b4;
     }
-
     .section {
       margin-bottom: 2rem;
       border: 1px solid #333;
@@ -24,27 +22,14 @@
       border-radius: 12px;
       background: #1c1c1c;
     }
-
     .label {
       font-weight: bold;
       color: #aaa;
     }
-
-    input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    /* Chatbox */
     #chatbox {
       border-top: 1px solid #444;
       padding-top: 1rem;
     }
-
     .chatlog {
       max-height: 300px;
       overflow-y: auto;
@@ -54,12 +39,24 @@
       padding: 1rem;
       border-radius: 8px;
     }
-
-    .chatlog div {
-      margin: 0.5rem 0;
+    .chatlog div { margin: 0.5rem 0; }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #login-section, #set-name-section {
+      max-width: 300px;
+      margin: 2rem auto;
+      background: #222;
+      padding: 1rem;
+      border-radius: 10px;
+      display: none;
+    }
+    #login-section input, #set-name-section input {
+      width: 100%;
+      margin-bottom: 0.5rem;
     }
 
-    /* Sidebar */
     #sidebar {
       position: fixed;
       top: 0;
@@ -69,34 +66,30 @@
       background: #1a1a1a;
       color: #fff;
       padding: 1rem;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
       visibility: hidden;
       opacity: 0;
       transform: translateX(-100%);
       transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s linear 0.3s;
       z-index: 1000;
     }
-
     #sidebar.open {
       visibility: visible;
       opacity: 1;
       transform: translateX(0);
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
-
     #sidebar h2 {
       margin-top: 0;
       color: #ff69b4;
     }
-
     #sidebar ul {
       list-style: none;
       padding: 0;
     }
-
     #sidebar ul li {
       margin: 1rem 0;
     }
-
     #sidebar ul li a {
       color: #fff;
       text-decoration: none;
@@ -113,9 +106,9 @@
       padding: 0.5rem 1rem;
       border-radius: 6px;
       z-index: 1001;
+      transition: opacity 0.3s ease;
       cursor: pointer;
     }
-
     #open-sidebar.fade {
       opacity: 0;
       pointer-events: none;
@@ -129,59 +122,6 @@
       position: absolute;
       top: 10px;
       right: 15px;
-      cursor: pointer;
-    }
-
-    /* Auth sections */
-    .auth-section {
-      max-width: 300px;
-      margin: 2rem auto;
-      background: #222;
-      padding: 1rem;
-      border-radius: 10px;
-    }
-
-    .auth-section input {
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Modal */
-    #name-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #name-modal .modal-content {
-      background: #222;
-      padding: 2rem;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 300px;
-      color: #fff;
-    }
-
-    #name-modal input,
-    #name-modal button {
-      width: 100%;
-      margin-top: 1rem;
-    }
-
-    #name-modal button {
-      background: #ff69b4;
-      color: #000;
-      border: none;
-      padding: 0.5rem;
-      border-radius: 6px;
       cursor: pointer;
     }
   </style>
@@ -200,13 +140,13 @@
   </div>
   <button id="open-sidebar">&#9776;</button>
 
-  <!-- Login & Signup -->
-  <div id="login-section" class="auth-section">
-    <h2>Login</h2>
+  <!-- Login + Signup -->
+  <div id="login-section" style="display:block;">
+    <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
     <button id="login-btn">Login</button>
-    <button id="logout-btn" class="hidden">Logout</button>
+    <button id="logout-btn" style="display:none;">Logout</button>
 
     <h3>Or Sign Up</h3>
     <input id="signup-email" type="email" placeholder="New Email" />
@@ -217,7 +157,7 @@
   </div>
 
   <!-- Dashboard -->
-  <div id="dashboard" class="hidden">
+  <div id="dashboard" style="display:none;">
     <h1>Welcome, <span id="display-name">Andrew</span> 🖤</h1>
 
     <div class="section">
@@ -246,16 +186,35 @@
   </div>
 
   <!-- Name Prompt Modal -->
-  <div id="name-modal">
-    <div class="modal-content">
+  <div id="name-modal" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  ">
+    <div style="
+      background: #222;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 300px;
+      color: #fff;
+    ">
       <h2>What's your name?</h2>
-      <input id="name-modal-input" type="text" placeholder="Enter name..." />
-      <button id="name-modal-btn">Save</button>
+      <input id="name-modal-input" type="text" placeholder="Enter name..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
+      <button id="name-modal-btn" style="margin-top: 1rem; background: #ff69b4; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+        Save
+      </button>
     </div>
   </div>
 
-  <!-- Scripts (same logic as before) -->
   <script>
+    let justSignedUp = false;
+
     function updateDashboard() {
       document.getElementById('debt-amount').textContent = "$124.80";
       const messages = [
@@ -291,6 +250,89 @@
     closeBtn.onclick = () => {
       sidebar.classList.remove('open');
       openBtn.classList.remove('fade');
+    };
+
+    // Auth State Change Handler
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        if (justSignedUp) {
+          justSignedUp = false;  // Reset flag after sign-up
+          showNameModal();
+          return;
+        }
+
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const name = userData.name || "User";
+          document.getElementById('display-name').textContent = name;
+          document.getElementById('profile-name').textContent = name;
+        } else {
+          showNameModal();
+        }
+        showDashboard();
+      } else {
+        showLogin();
+      }
+    });
+
+    // Show Name Modal
+    function showNameModal() {
+      document.getElementById('name-modal').style.display = 'flex';
+    }
+
+    // Hide Name Modal
+    function hideNameModal() {
+      document.getElementById('name-modal').style.display = 'none';
+    }
+
+    // Show Dashboard
+    function showDashboard() {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('logout-btn').style.display = 'inline-block';
+      updateDashboard();
+    }
+
+    // Show Login
+    function showLogin() {
+      document.getElementById('login-section').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+
+    // Sign-Up Process
+    document.getElementById('signup-btn').onclick = async () => {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        justSignedUp = true;  // Flag to show name modal
+        showNameModal();
+      } catch (e) {
+        document.getElementById('login-message').textContent = e.message;
+      }
+    };
+
+    // Save Name
+    document.getElementById('name-modal-btn').onclick = async () => {
+      const name = document.getElementById('name-modal-input').value.trim();
+      if (!name) {
+        alert("Please enter your name.");
+        return;
+      }
+      try {
+        const userDocRef = doc(db, "users", auth.currentUser.uid);
+        await setDoc(userDocRef, { name });
+
+        document.getElementById('display-name').textContent = name;
+        document.getElementById('profile-name').textContent = name;
+
+        hideNameModal();
+        showDashboard();
+      } catch (error) {
+        alert("Failed to save name: " + error.message);
+      }
     };
   </script>
 
