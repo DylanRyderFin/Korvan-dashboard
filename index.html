@@ -215,14 +215,12 @@
     <div id="name-modal-content">
       <h2>What's your name?</h2>
       <input id="name-modal-input" type="text" placeholder="Enter name..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
-      <button id="name-modal-btn">
-        Save
-      </button>
+      <button id="name-modal-btn">Save</button>
     </div>
   </div>
 
   <script>
-    let isNewUser = false;  // Flag to track whether the user just signed up
+    let isNewUser = false;
 
     function updateDashboard() {
       document.getElementById('debt-amount').textContent = "$124.80";
@@ -245,34 +243,27 @@
       log.scrollTop = log.scrollHeight;
     }
 
-    // Handle User Sign-Up
     document.getElementById('signup-btn').onclick = async () => {
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       try {
-        // Assuming this is Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        isNewUser = true;  // Flag to trigger name modal
-        showNameModal();
+        isNewUser = true;
       } catch (error) {
         document.getElementById('login-message').textContent = error.message;
       }
     };
 
-    // Show Name Modal after Sign-Up
     function showNameModal() {
       document.getElementById('name-modal').style.display = 'flex';
     }
 
-    // Save the Name
     document.getElementById('name-modal-btn').onclick = async () => {
       const name = document.getElementById('name-modal-input').value.trim();
       if (!name) {
         alert("Please enter a name.");
         return;
       }
-      // Save the name to Firebase here
-      // Assuming 'auth.currentUser' is valid
       try {
         const userDocRef = doc(db, "users", auth.currentUser.uid);
         await setDoc(userDocRef, { name });
@@ -285,47 +276,48 @@
       }
     };
 
-    // Hide Name Modal
     function hideNameModal() {
       document.getElementById('name-modal').style.display = 'none';
     }
 
-    // Show Dashboard after successful login/sign-up
     function showDashboard() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       updateDashboard();
     }
 
-    // Show Login
     function showLogin() {
       document.getElementById('login-section').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
     }
 
-    // Auth State Change Handler
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+
         if (isNewUser) {
           isNewUser = false;
           showNameModal();
+        } else if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const name = userData.name || "User";
+          document.getElementById('display-name').textContent = name;
+          document.getElementById('profile-name').textContent = name;
+          showDashboard();
         } else {
-          const userDocRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(userDocRef);
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            const name = userData.name || "User";
-            document.getElementById('display-name').textContent = name;
-            document.getElementById('profile-name').textContent = name;
-          } else {
-            showNameModal();
-          }
+          // fallback: no name stored, use placeholder but don't show modal
+          document.getElementById('display-name').textContent = "User";
+          document.getElementById('profile-name').textContent = "User";
           showDashboard();
         }
       } else {
         showLogin();
       }
     });
+  </script>
+</body>
+</html>
 
   </script>
 </body>
