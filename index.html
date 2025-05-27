@@ -234,29 +234,16 @@
       log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
       input.value = '';
       setTimeout(() => {
-        log.innerHTML += `<div><strong>Dom AI:</strong> Mmmh, you're so needy already…</div>`;
+        log.innerHTML += `<div><strong>Dom AI:</strong> Mmmm… such a good boy.</div>`;
         log.scrollTop = log.scrollHeight;
       }, 1000);
     }
-
-    const sidebar = document.getElementById('sidebar');
-    const openBtn = document.getElementById('open-sidebar');
-    const closeBtn = document.getElementById('close-sidebar');
-
-    openBtn.onclick = () => {
-      sidebar.classList.add('open');
-      openBtn.classList.add('fade');
-    };
-    closeBtn.onclick = () => {
-      sidebar.classList.remove('open');
-      openBtn.classList.remove('fade');
-    };
 
     // Auth State Change Handler
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         if (justSignedUp) {
-          justSignedUp = false;  // Reset flag after sign-up
+          justSignedUp = false; // Reset after sign-up
           showNameModal();
           return;
         }
@@ -307,7 +294,7 @@
       const password = document.getElementById('signup-password').value;
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        justSignedUp = true;  // Flag to show name modal
+        justSignedUp = true;  // Set flag to show the name modal
         showNameModal();
       } catch (e) {
         document.getElementById('login-message').textContent = e.message;
@@ -335,6 +322,5 @@
       }
     };
   </script>
-
 </body>
 </html>
