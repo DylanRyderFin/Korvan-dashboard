@@ -315,62 +315,75 @@
       const password = document.getElementById('signup-password').value;
       loginMessage.textContent = '';
       createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          loginMessage.textContent = 'Sign-up successful. Please enter your name.';
-          nameModal.style.display = "flex";
-        })
         .catch((error) => {
           loginMessage.textContent = error.message;
         });
     };
 
-    nameModalBtn.onclick = async () => {
-      const name = nameModalInput.value.trim();
-      if (!name) return;
-      const user = auth.currentUser;
-      if (user) {
-        await setDoc(doc(db, "users", user.uid), { displayName: name });
-        updateDisplayNameUI(name);
-        nameModal.style.display = "none";
-        dashboard.style.display = "block";
-        updateDashboard();
-      }
-    };
+    // Save name function
+    async function saveName(uid, name) {
+      const userDoc = doc(db, "users", uid);
+      await setDoc(userDoc, { name }, { merge: true });
+    }
 
-    async function fetchDisplayName(uid) {
-      const docRef = doc(db, "users", uid);
-      const docSnap = await getDoc(docRef);
+    // Load name function
+    async function loadName(uid) {
+      const userDoc = doc(db, "users", uid);
+      const docSnap = await getDoc(userDoc);
       if (docSnap.exists()) {
-        return docSnap.data().displayName || null;
+        return docSnap.data().name || null;
       }
       return null;
     }
 
-    function updateDisplayNameUI(name) {
-      displayNameSpan.textContent = name;
-      profileNameSpan.textContent = name;
-    }
-
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, async user => {
       if (user) {
-        loginSection.style.display = "none";
-        const displayName = await fetchDisplayName(user.uid);
-        if (displayName) {
-          updateDisplayNameUI(displayName);
-          dashboard.style.display = "block";
+        loginSection.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+
+        const name = await loadName(user.uid);
+
+        if (name) {
+          // If name exists, show dashboard with name
+          displayNameSpan.textContent = name;
+          profileNameSpan.textContent = name;
+          dashboard.style.display = 'block';
+          nameModal.style.display = 'none';
           updateDashboard();
+        } else {
+          // Show name modal to ask for name
+          nameModal.style.display = 'flex';
+          dashboard.style.display = 'none';
+          nameModalInput.value = '';
+          nameModalInput.focus();
         }
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
       } else {
-        loginSection.style.display = "block";
-        dashboard.style.display = "none";
-        loginBtn.style.display = "inline-block";
-        logoutBtn.style.display = "none";
+        loginSection.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        dashboard.style.display = 'none';
+        nameModal.style.display = 'none';
       }
     });
-  </script>
 
+    nameModalBtn.onclick = async () => {
+      const name = nameModalInput.value.trim();
+      if (!name) {
+        alert("Please enter your name.");
+        return;
+      }
+      const user = auth.currentUser;
+      if (!user) {
+        alert("No user logged in.");
+        return;
+      }
+      await saveName(user.uid, name);
+      displayNameSpan.textContent = name;
+      profileNameSpan.textContent = name;
+      nameModal.style.display = 'none';
+      loginSection.style.display = 'none';
+      dashboard.style.display = 'block';
+      updateDashboard();
+    };
+  </script>
 </body>
 </html>
