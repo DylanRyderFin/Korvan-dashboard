@@ -26,35 +26,27 @@
       font-weight: bold;
       color: #aaa;
     }
-    #chatbox {
-      border-top: 1px solid #444;
-      padding-top: 1rem;
-    }
-    .chatlog {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      background: #222;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    .chatlog div { margin: 0.5rem 0; }
     input, button {
       padding: 0.5rem;
       font-size: 1rem;
     }
-    #login-section {
-      max-width: 300px;
-      margin: 2rem auto;
+
+    #login-section, #dashboard, #settings-page {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    #chatbox .chatlog {
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 0.9rem;
       background: #222;
       padding: 1rem;
-      border-radius: 10px;
-      display: block;
+      border-radius: 8px;
+      margin-bottom: 1rem;
     }
-    #login-section input {
-      width: 100%;
-      margin-bottom: 0.5rem;
+    .chatlog div {
+      margin: 0.5rem 0;
     }
 
     #sidebar {
@@ -93,8 +85,8 @@
     #sidebar ul li a {
       color: #fff;
       text-decoration: none;
+      cursor: pointer;
     }
-
     #open-sidebar {
       position: fixed;
       top: 1rem;
@@ -109,7 +101,6 @@
       transition: opacity 0.3s ease;
       cursor: pointer;
     }
-
     #close-sidebar {
       background: none;
       color: #fff;
@@ -129,8 +120,8 @@
     <button id="close-sidebar">&times;</button>
     <h2>Menu</h2>
     <ul>
-      <li><a href="#">Dashboard</a></li>
-      <li><a href="#">Settings</a></li>
+      <li><a id="menu-dashboard">Dashboard</a></li>
+      <li><a id="menu-settings">Settings</a></li>
       <li><a href="#">Submit Debt</a></li>
     </ul>
   </div>
@@ -182,6 +173,15 @@
     </div>
   </div>
 
+  <!-- Settings Page -->
+  <div id="settings-page" style="display:none;">
+    <h1>Settings</h1>
+    <div class="section">
+      <p>Settings options coming soon...</p>
+      <button id="back-to-dashboard">← Back to Dashboard</button>
+    </div>
+  </div>
+
   <!-- Firebase + Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -199,7 +199,6 @@
       getDoc
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
       apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
       authDomain: "andrewdashboardauth.firebaseapp.com",
@@ -265,11 +264,18 @@
     function showDashboard() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('settings-page').style.display = 'none';
     }
 
     function showLogin() {
       document.getElementById('login-section').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('settings-page').style.display = 'none';
+    }
+
+    function showSettings() {
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('settings-page').style.display = 'block';
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -286,14 +292,25 @@
       document.getElementById('login-message').textContent = '';
     });
 
-    // Sidebar open/close
+    // Sidebar toggle
     const sidebar = document.getElementById('sidebar');
-    document.getElementById('open-sidebar').onclick = () => {
-      sidebar.classList.add('open');
-    };
-    document.getElementById('close-sidebar').onclick = () => {
+    document.getElementById('open-sidebar').onclick = () => sidebar.classList.add('open');
+    document.getElementById('close-sidebar').onclick = () => sidebar.classList.remove('open');
+
+    // Navigation handlers
+    document.getElementById('menu-dashboard').onclick = () => {
+      showDashboard();
       sidebar.classList.remove('open');
     };
+    document.getElementById('menu-settings').onclick = () => {
+      showSettings();
+      sidebar.classList.remove('open');
+    };
+    document.getElementById('back-to-dashboard').onclick = () => showDashboard();
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
