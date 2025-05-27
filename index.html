@@ -56,9 +56,76 @@
       width: 100%;
       margin-bottom: 0.5rem;
     }
+
+    /* Sidebar styles */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100%;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 1rem;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+    #sidebar.open {
+      left: 0;
+    }
+    #sidebar h2 {
+      margin-top: 0;
+      color: #ff69b4;
+    }
+    #sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    #sidebar ul li {
+      margin: 1rem 0;
+    }
+    #sidebar ul li a {
+      color: #fff;
+      text-decoration: none;
+    }
+    #open-sidebar {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      font-size: 1.5rem;
+      background: #ff69b4;
+      color: #111;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      z-index: 1001;
+    }
+    #close-sidebar {
+      background: none;
+      color: #fff;
+      border: none;
+      font-size: 2rem;
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <button id="close-sidebar">&times;</button>
+    <h2>Menu</h2>
+    <ul>
+      <li><a href="#">Dashboard</a></li>
+      <li><a href="#">Settings</a></li>
+      <li><a href="#">Submit Debt</a></li>
+    </ul>
+  </div>
+  <button id="open-sidebar">&#9776;</button>
 
   <!-- Login + Signup -->
   <div id="login-section">
@@ -129,6 +196,14 @@
         log.scrollTop = log.scrollHeight;
       }, 1000);
     }
+
+    // Sidebar toggle logic
+    document.getElementById('open-sidebar').onclick = () => {
+      document.getElementById('sidebar').classList.add('open');
+    };
+    document.getElementById('close-sidebar').onclick = () => {
+      document.getElementById('sidebar').classList.remove('open');
+    };
   </script>
 
   <script type="module">
@@ -176,7 +251,6 @@
       signOut(auth);
     };
 
-    // SIGN UP logic
     const signupBtn = document.getElementById('signup-btn');
     if (signupBtn) {
       signupBtn.onclick = () => {
@@ -184,7 +258,7 @@
         const password = document.getElementById('signup-password').value;
         loginMessage.textContent = '';
         createUserWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
+          .then(() => {
             loginMessage.textContent = 'Sign-up successful. You are now logged in.';
           })
           .catch((error) => {
@@ -193,7 +267,6 @@
       };
     }
 
-    // Monitor login state
     onAuthStateChanged(auth, (user) => {
       if (user) {
         loginSection.style.display = 'none';
