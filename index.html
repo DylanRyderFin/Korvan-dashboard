@@ -57,7 +57,6 @@
       margin-bottom: 0.5rem;
     }
 
-    /* Sidebar styles with invisible & fade + slide */
     #sidebar {
       position: fixed;
       top: 0;
@@ -68,7 +67,6 @@
       color: #fff;
       padding: 1rem;
       box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-
       visibility: hidden;
       opacity: 0;
       transform: translateX(-100%);
@@ -158,14 +156,6 @@
     <div id="login-message" style="color:#f66; margin-top:0.5rem;"></div>
   </div>
 
-  <!-- Set Name Section -->
-  <div id="set-name-section">
-    <h2>Set Your Display Name</h2>
-    <input id="display-name-input" type="text" placeholder="Enter your name" />
-    <button id="set-name-btn">Save Name</button>
-    <div id="set-name-message" style="color:#f66; margin-top:0.5rem;"></div>
-  </div>
-
   <!-- Dashboard -->
   <div id="dashboard" style="display:none;">
     <h1>Welcome, <span id="display-name">Andrew</span> 🖤</h1>
@@ -195,6 +185,33 @@
     </div>
   </div>
 
+  <!-- Name Prompt Modal -->
+  <div id="name-modal" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  ">
+    <div style="
+      background: #222;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 300px;
+      color: #fff;
+    ">
+      <h2>What's your name?</h2>
+      <input id="name-modal-input" type="text" placeholder="Enter name..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
+      <button id="name-modal-btn" style="margin-top: 1rem; background: #ff69b4; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+        Save
+      </button>
+    </div>
+  </div>
+
   <script>
     function updateDashboard() {
       document.getElementById('debt-amount').textContent = "$124.80";
@@ -220,18 +237,17 @@
       }, 1000);
     }
 
-    // Sidebar toggle logic with fade effect on button & invisible sidebar
     const sidebar = document.getElementById('sidebar');
     const openBtn = document.getElementById('open-sidebar');
     const closeBtn = document.getElementById('close-sidebar');
 
     openBtn.onclick = () => {
       sidebar.classList.add('open');
-      openBtn.classList.add('fade'); // fade out open button
+      openBtn.classList.add('fade');
     };
     closeBtn.onclick = () => {
       sidebar.classList.remove('open');
-      openBtn.classList.remove('fade'); // fade open button back in
+      openBtn.classList.remove('fade');
     };
   </script>
 
@@ -245,19 +261,18 @@
       onAuthStateChanged,
       createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-
     import {
       getFirestore,
       doc,
       getDoc,
-      setDoc,
+      setDoc
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
       authDomain: "andrewdashboardauth.firebaseapp.com",
       projectId: "andrewdashboardauth",
-      storageBucket: "andrewdashboardauth.firebasestorage.app",
+      storageBucket: "andrewdashboardauth.appspot.com",
       messagingSenderId: "165854560081",
       appId: "1:165854560081:web:804b9490c6116a3b025d70",
       measurementId: "G-1PKMZBEFTX"
@@ -274,13 +289,12 @@
     const logoutBtn = document.getElementById('logout-btn');
     const loginMessage = document.getElementById('login-message');
 
-    const setNameSection = document.getElementById('set-name-section');
-    const displayNameInput = document.getElementById('display-name-input');
-    const setNameBtn = document.getElementById('set-name-btn');
-    const setNameMessage = document.getElementById('set-name-message');
-
     const displayNameSpan = document.getElementById('display-name');
     const profileNameSpan = document.getElementById('profile-name');
+
+    const nameModal = document.getElementById("name-modal");
+    const nameModalInput = document.getElementById("name-modal-input");
+    const nameModalBtn = document.getElementById("name-modal-btn");
 
     loginBtn.onclick = () => {
       const email = document.getElementById('email').value;
@@ -289,68 +303,49 @@
       signInWithEmailAndPassword(auth, email, password)
         .catch((error) => {
           loginMessage.textContent = error.message;
-          console.error("Login error:", error);
         });
     };
 
     logoutBtn.onclick = () => {
-      signOut(auth).catch(e => console.error("Logout error:", e));
+      signOut(auth).catch(console.error);
     };
 
-    const signupBtn = document.getElementById('signup-btn');
-    if (signupBtn) {
-      signupBtn.onclick = () => {
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        loginMessage.textContent = '';
-        createUserWithEmailAndPassword(auth, email, password)
-          .then(() => {
-            loginMessage.textContent = 'Sign-up successful. You are now logged in.';
-            console.log("Sign-up success");
-          })
-          .catch((error) => {
-            loginMessage.textContent = error.message;
-            console.error("Sign-up error:", error);
-          });
-      };
-    }
+    document.getElementById('signup-btn').onclick = () => {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      loginMessage.textContent = '';
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          loginMessage.textContent = 'Sign-up successful. Please enter your name.';
+          nameModal.style.display = "flex";
+        })
+        .catch((error) => {
+          loginMessage.textContent = error.message;
+        });
+    };
+
+    nameModalBtn.onclick = async () => {
+      const name = nameModalInput.value.trim();
+      if (!name) return;
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, "users", user.uid), { displayName: name });
+        updateDisplayNameUI(name);
+        nameModal.style.display = "none";
+        dashboard.style.display = "block";
+        updateDashboard();
+      }
+    };
 
     async function fetchDisplayName(uid) {
-      console.log("Fetching display name for UID:", uid);
       const docRef = doc(db, "users", uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        console.log("Display name found:", docSnap.data().displayName);
         return docSnap.data().displayName || null;
       }
-      console.log("No display name found");
       return null;
     }
-
-    async function saveDisplayName(uid, name) {
-      try {
-        await setDoc(doc(db, "users", uid), { displayName: name });
-        console.log("Display name saved:", name);
-      } catch (e) {
-        console.error("Error saving display name:", e);
-      }
-    }
-
-    setNameBtn.onclick = async () => {
-      const name = displayNameInput.value.trim();
-      if (!name) {
-        setNameMessage.textContent = "Please enter a valid name.";
-        return;
-      }
-      setNameMessage.textContent = '';
-      const user = auth.currentUser;
-      if (user) {
-        await saveDisplayName(user.uid, name);
-        updateDisplayNameUI(name);
-        setNameSection.style.display = "none";
-        dashboard.style.display = "block";
-      }
-    };
 
     function updateDisplayNameUI(name) {
       displayNameSpan.textContent = name;
@@ -358,25 +353,19 @@
     }
 
     onAuthStateChanged(auth, async (user) => {
-      console.log("Auth state changed. User:", user);
       if (user) {
         loginSection.style.display = "none";
         const displayName = await fetchDisplayName(user.uid);
         if (displayName) {
           updateDisplayNameUI(displayName);
-          setNameSection.style.display = "none";
           dashboard.style.display = "block";
           updateDashboard();
-        } else {
-          setNameSection.style.display = "block";
-          dashboard.style.display = "none";
         }
         loginBtn.style.display = "none";
         logoutBtn.style.display = "inline-block";
       } else {
         loginSection.style.display = "block";
         dashboard.style.display = "none";
-        setNameSection.style.display = "none";
         loginBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
       }
