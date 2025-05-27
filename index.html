@@ -124,34 +124,6 @@
       right: 15px;
       cursor: pointer;
     }
-
-    #dashboard {
-      display: none;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-    }
-
-    #dashboard.show {
-      display: block;
-      opacity: 1;
-    }
-
-    #name-modal {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 2000;
-      opacity: 1;
-      transition: opacity 0.3s ease;
-    }
-
-    #name-modal.fade-out {
-      opacity: 0;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
@@ -168,7 +140,7 @@
   </div>
   <button id="open-sidebar">&#9776;</button>
 
-  <!-- Login -->
+  <!-- Login + Signup -->
   <div id="login-section">
     <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
@@ -185,7 +157,7 @@
   </div>
 
   <!-- Dashboard -->
-  <div id="dashboard">
+  <div id="dashboard" style="display:none;">
     <h1>Welcome, <span id="display-name">Andrew</span> 🖤</h1>
 
     <div class="section">
@@ -213,12 +185,30 @@
     </div>
   </div>
 
-  <!-- Name Modal -->
-  <div id="name-modal">
-    <div style="background:#222; padding:2rem; border-radius:12px; text-align:center; max-width:300px; color:#fff;">
+  <!-- Name Prompt Modal -->
+  <div id="name-modal" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  ">
+    <div style="
+      background: #222;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 300px;
+      color: #fff;
+    ">
       <h2>What's your name?</h2>
       <input id="name-modal-input" type="text" placeholder="Enter name..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
-      <button id="name-modal-btn" style="margin-top: 1rem; background: #ff69b4; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">Save</button>
+      <button id="name-modal-btn" style="margin-top: 1rem; background: #ff69b4; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+        Save
+      </button>
     </div>
   </div>
 
@@ -325,66 +315,75 @@
       const password = document.getElementById('signup-password').value;
       loginMessage.textContent = '';
       createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          loginMessage.textContent = 'Sign-up successful. Please enter your name.';
-          nameModal.style.display = "flex";
-        })
         .catch((error) => {
           loginMessage.textContent = error.message;
         });
     };
 
-    nameModalBtn.onclick = async () => {
-      const name = nameModalInput.value.trim();
-      if (!name) return;
-      const user = auth.currentUser;
-      if (user) {
-        await setDoc(doc(db, "users", user.uid), { displayName: name }, { merge: true });
-        updateDisplayNameUI(name);
-        nameModal.classList.add("fade-out");
-        setTimeout(() => {
-          nameModal.style.display = "none";
-          dashboard.classList.add("show");
-          updateDashboard();
-        }, 300);
-      }
-    };
-
-    function updateDisplayNameUI(name) {
-      displayNameSpan.textContent = name;
-      profileNameSpan.textContent = name;
+    // Save name function
+    async function saveName(uid, name) {
+      const userDoc = doc(db, "users", uid);
+      await setDoc(userDoc, { name }, { merge: true });
     }
 
-    async function fetchDisplayName(uid) {
-      const docRef = doc(db, "users", uid);
-      const docSnap = await getDoc(docRef);
+    // Load name function
+    async function loadName(uid) {
+      const userDoc = doc(db, "users", uid);
+      const docSnap = await getDoc(userDoc);
       if (docSnap.exists()) {
-        return docSnap.data().displayName || null;
+        return docSnap.data().name || null;
       }
       return null;
     }
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, async user => {
       if (user) {
-        loginSection.style.display = "none";
-        const displayName = await fetchDisplayName(user.uid);
-        if (displayName) {
-          updateDisplayNameUI(displayName);
-          dashboard.classList.add("show");
+        loginSection.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+
+        const name = await loadName(user.uid);
+
+        if (name) {
+          // If name exists, show dashboard with name
+          displayNameSpan.textContent = name;
+          profileNameSpan.textContent = name;
+          dashboard.style.display = 'block';
+          nameModal.style.display = 'none';
           updateDashboard();
         } else {
-          nameModal.style.display = "flex";
+          // Show name modal to ask for name
+          nameModal.style.display = 'flex';
+          dashboard.style.display = 'none';
+          nameModalInput.value = '';
+          nameModalInput.focus();
         }
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
       } else {
-        loginSection.style.display = "block";
-        dashboard.classList.remove("show");
-        loginBtn.style.display = "inline-block";
-        logoutBtn.style.display = "none";
+        loginSection.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        dashboard.style.display = 'none';
+        nameModal.style.display = 'none';
       }
     });
-  </script>
 
+    nameModalBtn.onclick = async () => {
+      const name = nameModalInput.value.trim();
+      if (!name) {
+        alert("Please enter your name.");
+        return;
+      }
+      const user = auth.currentUser;
+      if (!user) {
+        alert("No user logged in.");
+        return;
+      }
+      await saveName(user.uid, name);
+      displayNameSpan.textContent = name;
+      profileNameSpan.textContent = name;
+      nameModal.style.display = 'none';
+      loginSection.style.display = 'none';
+      dashboard.style.display = 'block';
+      updateDashboard();
+    };
+  </script>
 </body>
 </html>
