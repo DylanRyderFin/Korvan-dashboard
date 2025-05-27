@@ -109,10 +109,6 @@
       transition: opacity 0.3s ease;
       cursor: pointer;
     }
-    #open-sidebar.fade {
-      opacity: 0;
-      pointer-events: none;
-    }
 
     #close-sidebar {
       background: none;
@@ -122,6 +118,35 @@
       position: absolute;
       top: 10px;
       right: 15px;
+      cursor: pointer;
+    }
+
+    /* Name Modal */
+    #name-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #name-modal-content {
+      background: #222;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 300px;
+      color: #fff;
+    }
+    #name-modal-btn {
+      margin-top: 1rem;
+      background: #ff69b4;
+      color: #000;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
       cursor: pointer;
     }
   </style>
@@ -186,34 +211,18 @@
   </div>
 
   <!-- Name Prompt Modal -->
-  <div id="name-modal" style="
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  ">
-    <div style="
-      background: #222;
-      padding: 2rem;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 300px;
-      color: #fff;
-    ">
+  <div id="name-modal">
+    <div id="name-modal-content">
       <h2>What's your name?</h2>
       <input id="name-modal-input" type="text" placeholder="Enter name..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
-      <button id="name-modal-btn" style="margin-top: 1rem; background: #ff69b4; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+      <button id="name-modal-btn">
         Save
       </button>
     </div>
   </div>
 
   <script>
-    let justSignedUp = false;
+    let isNewUser = false;  // Flag to track whether the user just signed up
 
     function updateDashboard() {
       document.getElementById('debt-amount').textContent = "$124.80";
@@ -233,52 +242,58 @@
       if (!userMsg) return;
       log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
       input.value = '';
-      setTimeout(() => {
-        log.innerHTML += `<div><strong>Dom AI:</strong> Mmmm… such a good boy.</div>`;
-        log.scrollTop = log.scrollHeight;
-      }, 1000);
+      log.scrollTop = log.scrollHeight;
     }
 
-    // Auth State Change Handler
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        if (justSignedUp) {
-          justSignedUp = false; // Reset after sign-up
-          showNameModal();
-          return;
-        }
-
-        const userDocRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userDocRef);
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          const name = userData.name || "User";
-          document.getElementById('display-name').textContent = name;
-          document.getElementById('profile-name').textContent = name;
-        } else {
-          showNameModal();
-        }
-        showDashboard();
-      } else {
-        showLogin();
+    // Handle User Sign-Up
+    document.getElementById('signup-btn').onclick = async () => {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      try {
+        // Assuming this is Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        isNewUser = true;  // Flag to trigger name modal
+        showNameModal();
+      } catch (error) {
+        document.getElementById('login-message').textContent = error.message;
       }
-    });
+    };
 
-    // Show Name Modal
+    // Show Name Modal after Sign-Up
     function showNameModal() {
       document.getElementById('name-modal').style.display = 'flex';
     }
+
+    // Save the Name
+    document.getElementById('name-modal-btn').onclick = async () => {
+      const name = document.getElementById('name-modal-input').value.trim();
+      if (!name) {
+        alert("Please enter a name.");
+        return;
+      }
+      // Save the name to Firebase here
+      // Assuming 'auth.currentUser' is valid
+      try {
+        const userDocRef = doc(db, "users", auth.currentUser.uid);
+        await setDoc(userDocRef, { name });
+        document.getElementById('display-name').textContent = name;
+        document.getElementById('profile-name').textContent = name;
+        hideNameModal();
+        showDashboard();
+      } catch (error) {
+        alert("Failed to save name: " + error.message);
+      }
+    };
 
     // Hide Name Modal
     function hideNameModal() {
       document.getElementById('name-modal').style.display = 'none';
     }
 
-    // Show Dashboard
+    // Show Dashboard after successful login/sign-up
     function showDashboard() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('logout-btn').style.display = 'inline-block';
       updateDashboard();
     }
 
@@ -288,39 +303,30 @@
       document.getElementById('dashboard').style.display = 'none';
     }
 
-    // Sign-Up Process
-    document.getElementById('signup-btn').onclick = async () => {
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        justSignedUp = true;  // Set flag to show the name modal
-        showNameModal();
-      } catch (e) {
-        document.getElementById('login-message').textContent = e.message;
+    // Auth State Change Handler
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        if (isNewUser) {
+          isNewUser = false;
+          showNameModal();
+        } else {
+          const userDocRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            const name = userData.name || "User";
+            document.getElementById('display-name').textContent = name;
+            document.getElementById('profile-name').textContent = name;
+          } else {
+            showNameModal();
+          }
+          showDashboard();
+        }
+      } else {
+        showLogin();
       }
-    };
+    });
 
-    // Save Name
-    document.getElementById('name-modal-btn').onclick = async () => {
-      const name = document.getElementById('name-modal-input').value.trim();
-      if (!name) {
-        alert("Please enter your name.");
-        return;
-      }
-      try {
-        const userDocRef = doc(db, "users", auth.currentUser.uid);
-        await setDoc(userDocRef, { name });
-
-        document.getElementById('display-name').textContent = name;
-        document.getElementById('profile-name').textContent = name;
-
-        hideNameModal();
-        showDashboard();
-      } catch (error) {
-        alert("Failed to save name: " + error.message);
-      }
-    };
   </script>
 </body>
 </html>
