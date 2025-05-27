@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Andrew’s Dashboard</title>
   <style>
     body {
@@ -43,57 +43,145 @@
     input, button {
       padding: 0.5rem;
       font-size: 1rem;
+      margin: 0.25rem 0;
+      border-radius: 4px;
+      border: none;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: #ff69b4;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+    }
+    #login-form {
+      max-width: 300px;
+      margin: 2rem auto;
+      background: #222;
+      padding: 1rem;
+      border-radius: 12px;
     }
   </style>
+
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
 </head>
 <body>
 
-  <h1>Welcome, Andrew 🖤</h1>
-
-  <div class="section">
-    <div class="label">Debt Price:</div>
-    <div id="debt-amount">$—loading—</div>
+  <!-- Login Form -->
+  <div id="login-form">
+    <h2 style="text-align:center; margin-bottom: 1rem;">Login</h2>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button onclick="login()">Log In</button>
+    <p style="color:#888; font-size: 0.8rem; margin-top: 1rem; text-align:center;">
+      Use the email/password you registered in Firebase Authentication.
+    </p>
   </div>
 
-  <div class="section">
-    <div class="label">Daily Message:</div>
-    <div id="daily-message"><em>—loading—</em></div>
-  </div>
+  <!-- Dashboard Content (hidden until login) -->
+  <div id="dashboard-content" style="display:none; max-width: 600px; margin: auto;">
+    <h1>Welcome, Andrew 🖤</h1>
 
-  <div class="section">
-    <div class="label">Profile:</div>
-    <p><strong>Name:</strong> Andrew</p>
-    <p><strong>Nicknames:</strong> puppy, f@g</p>
-    <p><strong>Fetishes:</strong> Edging, mind control, gooning, muscle worship, manipulation…</p>
-  </div>
+    <div class="section">
+      <div class="label">Debt Price:</div>
+      <div id="debt-amount">$—loading—</div>
+    </div>
 
-  <div class="section" id="chatbox">
-    <div class="label">Dom AI Chat:</div>
-    <div class="chatlog" id="chat-log"></div>
-    <input id="user-input" placeholder="Type to your dom..." />
-    <button onclick="sendMessage()">Send</button>
+    <div class="section">
+      <div class="label">Daily Message:</div>
+      <div id="daily-message"><em>—loading—</em></div>
+    </div>
+
+    <div class="section">
+      <div class="label">Profile:</div>
+      <p><strong>Name:</strong> Andrew</p>
+      <p><strong>Nicknames:</strong> puppy, f@g</p>
+      <p><strong>Fetishes:</strong> Edging, mind control, gooning, muscle worship, manipulation…</p>
+    </div>
+
+    <div class="section" id="chatbox">
+      <div class="label">Dom AI Chat:</div>
+      <div class="chatlog" id="chat-log"></div>
+      <input id="user-input" placeholder="Type to your dom..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <button onclick="logout()" style="margin-top: 1rem; background:#800040;">Logout</button>
   </div>
 
   <script>
-    // TEMP placeholders for now:
-    document.getElementById('debt-amount').textContent = "$124.80";
-    const messages = [
-      "You're only useful on your knees, aren't you, puppy?",
-      "Every breath you take is mine. Every edge? My control.",
-      "You don’t even think anymore. Just obey, dumb muscle toy.",
-    ];
-    const msg = messages[Math.floor(Math.random() * messages.length)];
-    document.getElementById("daily-message").textContent = msg;
+    // Firebase config + init
+    const firebaseConfig = {
+      apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
+      authDomain: "andrewdashboardauth.firebaseapp.com",
+      projectId: "andrewdashboardauth",
+      storageBucket: "andrewdashboardauth.firebasestorage.app",
+      messagingSenderId: "165854560081",
+      appId: "1:165854560081:web:804b9490c6116a3b025d70",
+      measurementId: "G-1PKMZBEFTX"
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+    const auth = firebase.auth();
+
+    // Login function
+    function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) {
+        alert("Please enter email and password.");
+        return;
+      }
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          alert("Welcome " + userCredential.user.email);
+        })
+        .catch(error => {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    // Logout function
+    function logout() {
+      auth.signOut();
+    }
+
+    // Show/hide login & dashboard based on auth state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+
+        // Load your dashboard data here:
+        document.getElementById('debt-amount').textContent = "$124.80";
+
+        const messages = [
+          "You're only useful on your knees, aren't you, puppy?",
+          "Every breath you take is mine. Every edge? My control.",
+          "You don’t even think anymore. Just obey, dumb muscle toy.",
+        ];
+        const msg = messages[Math.floor(Math.random() * messages.length)];
+        document.getElementById("daily-message").textContent = msg;
+      } else {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('dashboard-content').style.display = 'none';
+      }
+    });
 
     // Chat placeholder:
     function sendMessage() {
       const input = document.getElementById('user-input');
       const log = document.getElementById('chat-log');
-      const userMsg = input.value;
+      const userMsg = input.value.trim();
       if (!userMsg) return;
       log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
       input.value = '';
-      // Replace this with actual fetch from your AI server later
       setTimeout(() => {
         log.innerHTML += `<div><strong>Dom AI:</strong> Mmmh, you're so needy already…</div>`;
         log.scrollTop = log.scrollHeight;
