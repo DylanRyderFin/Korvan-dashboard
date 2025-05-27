@@ -141,7 +141,7 @@
   <button id="open-sidebar">&#9776;</button>
 
   <!-- Login + Signup -->
-  <div id="login-section">
+  <div id="login-section" style="display:block;">
     <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
@@ -227,7 +227,7 @@
     function sendMessage() {
       const input = document.getElementById('user-input');
       const log = document.getElementById('chat-log');
-      const userMsg = input.value;
+      const userMsg = input.value.trim();
       if (!userMsg) return;
       log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
       input.value = '';
@@ -317,78 +317,84 @@
       const password = document.getElementById('signup-password').value;
       loginMessage.textContent = '';
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        justSignedUp = true; // mark signup happened
-        // Immediately show name modal:
-        loginSection.style.display = 'none';
-        dashboard.style.display = 'none';
-        nameModal.style.display = 'flex';
-        nameModalInput.value = '';
-        nameModalInput.focus();
-      } catch (error) {
-        loginMessage.textContent = error.message;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        justSignedUp = true;
+        showNameModal();
+      } catch (e) {
+        loginMessage.textContent = e.message;
       }
     };
 
     nameModalBtn.onclick = async () => {
       const name = nameModalInput.value.trim();
-      if (!name) return;
-      const user = auth.currentUser;
-      if (user) {
-        await setDoc(doc(db, "users", user.uid), { displayName: name });
-        updateDisplayNameUI(name);
-        nameModal.style.display = "none";
-        dashboard.style.display = "block";
-        updateDashboard();
+      if (!name) {
+        alert("Please enter your name.");
+        return;
+      }
+      try {
+        // Save to Firestore
+        const userDocRef = doc(db, "users", auth.currentUser.uid);
+        await setDoc(userDocRef, { name });
+        // Update UI
+        displayNameSpan.textContent = name;
+        profileNameSpan.textContent = name;
+        hideNameModal();
+        showDashboard();
+      } catch (error) {
+        alert("Failed to save name: " + error.message);
       }
     };
 
-    async function loadName(uid) {
-      const docRef = doc(db, "users", uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return docSnap.data().displayName || null;
-      }
-      return null;
+    function showNameModal() {
+      nameModal.style.display = 'flex';
+      loginSection.style.display = 'none';
+      dashboard.style.display = 'none';
+      nameModalInput.value = '';
+      nameModalInput.focus();
+      logoutBtn.style.display = 'none';
+    }
+    function hideNameModal() {
+      nameModal.style.display = 'none';
     }
 
-    function updateDisplayNameUI(name) {
-      displayNameSpan.textContent = name;
-      profileNameSpan.textContent = name;
+    function showDashboard() {
+      loginSection.style.display = 'none';
+      dashboard.style.display = 'block';
+      logoutBtn.style.display = 'inline-block';
+      updateDashboard();
+    }
+
+    function showLogin() {
+      loginSection.style.display = 'block';
+      dashboard.style.display = 'none';
+      logoutBtn.style.display = 'none';
+      hideNameModal();
     }
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        logoutBtn.style.display = 'inline-block';
-
         if (justSignedUp) {
-          // After signup, skip fetching name, just wait for modal input
-          justSignedUp = false;
-          // Already showing modal from signup handler
+          // We just signed up, so show the name modal and don't auto-hide login
+          justSignedUp = false; // reset flag after showing modal
+          showNameModal();
           return;
         }
-
-        // Normal login flow: fetch name from Firestore
-        const name = await loadName(user.uid);
-
-        if (name) {
-          updateDisplayNameUI(name);
-          dashboard.style.display = 'block';
-          nameModal.style.display = 'none';
-          loginSection.style.display = 'none';
-          updateDashboard();
+        // Existing user logged in: load name from Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const name = userData.name || "User";
+          displayNameSpan.textContent = name;
+          profileNameSpan.textContent = name;
         } else {
-          nameModal.style.display = 'flex';
-          dashboard.style.display = 'none';
-          loginSection.style.display = 'none';
-          nameModalInput.value = '';
-          nameModalInput.focus();
+          // No name set yet, prompt for name
+          showNameModal();
+          return;
         }
+        showDashboard();
       } else {
-        loginSection.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        dashboard.style.display = 'none';
-        nameModal.style.display = 'none';
+        showLogin();
       }
     });
   </script>
