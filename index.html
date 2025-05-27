@@ -121,7 +121,6 @@
       cursor: pointer;
     }
 
-    /* Name Modal */
     #name-modal {
       display: none;
       position: fixed;
@@ -220,8 +219,6 @@
   </div>
 
   <script>
-    let isNewUser = false;
-
     function updateDashboard() {
       document.getElementById('debt-amount').textContent = "$124.80";
       const messages = [
@@ -248,7 +245,7 @@
       const password = document.getElementById('signup-password').value;
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        isNewUser = true;
+        showNameModal(); // 👈 show modal right after sign-up
       } catch (error) {
         document.getElementById('login-message').textContent = error.message;
       }
@@ -295,30 +292,20 @@
       if (user) {
         const userDocRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(userDocRef);
-
-        if (isNewUser) {
-          isNewUser = false;
-          showNameModal();
-        } else if (docSnap.exists()) {
+        if (docSnap.exists()) {
           const userData = docSnap.data();
           const name = userData.name || "User";
           document.getElementById('display-name').textContent = name;
           document.getElementById('profile-name').textContent = name;
-          showDashboard();
         } else {
-          // fallback: no name stored, use placeholder but don't show modal
           document.getElementById('display-name').textContent = "User";
           document.getElementById('profile-name').textContent = "User";
-          showDashboard();
         }
+        showDashboard();
       } else {
         showLogin();
       }
     });
-  </script>
-</body>
-</html>
-
   </script>
 </body>
 </html>
