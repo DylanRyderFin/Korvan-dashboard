@@ -199,13 +199,15 @@
       getDoc
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
+      authDomain: "andrewdashboardauth.firebaseapp.com",
+      projectId: "andrewdashboardauth",
+      storageBucket: "andrewdashboardauth.firebasestorage.app",
+      messagingSenderId: "165854560081",
+      appId: "1:165854560081:web:804b9490c6116a3b025d70",
+      measurementId: "G-1PKMZBEFTX"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -273,13 +275,25 @@
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const docSnap = await getDoc(doc(db, "users", user.uid));
-        const name = docSnap.exists() ? docSnap.data().name : "User";
+        const name = docSnap.exists() ? docSnap.data().name : user.email;
         updateDashboard(name);
         showDashboard();
+        document.getElementById('logout-btn').style.display = 'inline-block';
       } else {
         showLogin();
+        document.getElementById('logout-btn').style.display = 'none';
       }
+      document.getElementById('login-message').textContent = '';
     });
+
+    // Sidebar open/close
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('open-sidebar').onclick = () => {
+      sidebar.classList.add('open');
+    };
+    document.getElementById('close-sidebar').onclick = () => {
+      sidebar.classList.remove('open');
+    };
   </script>
 </body>
 </html>
