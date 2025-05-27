@@ -44,7 +44,7 @@
       padding: 0.5rem;
       font-size: 1rem;
     }
-    #login-section {
+    #login-section, #set-name-section {
       max-width: 300px;
       margin: 2rem auto;
       background: #222;
@@ -52,7 +52,7 @@
       border-radius: 10px;
       display: none;
     }
-    #login-section input {
+    #login-section input, #set-name-section input {
       width: 100%;
       margin-bottom: 0.5rem;
     }
@@ -158,9 +158,17 @@
     <div id="login-message" style="color:#f66; margin-top:0.5rem;"></div>
   </div>
 
+  <!-- Set Name Section -->
+  <div id="set-name-section">
+    <h2>Set Your Display Name</h2>
+    <input id="display-name-input" type="text" placeholder="Enter your name" />
+    <button id="set-name-btn">Save Name</button>
+    <div id="set-name-message" style="color:#f66; margin-top:0.5rem;"></div>
+  </div>
+
   <!-- Dashboard -->
   <div id="dashboard" style="display:none;">
-    <h1>Welcome, Andrew 🖤</h1>
+    <h1>Welcome, <span id="display-name">Andrew</span> 🖤</h1>
 
     <div class="section">
       <div class="label">Debt Price:</div>
@@ -174,7 +182,7 @@
 
     <div class="section">
       <div class="label">Profile:</div>
-      <p><strong>Name:</strong> Andrew</p>
+      <p><strong>Name:</strong> <span id="profile-name">Andrew</span></p>
       <p><strong>Nicknames:</strong> puppy, f@g</p>
       <p><strong>Fetishes:</strong> Edging, mind control, gooning, muscle worship, manipulation…</p>
     </div>
@@ -238,6 +246,13 @@
       createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
       authDomain: "andrewdashboardauth.firebaseapp.com",
@@ -251,12 +266,21 @@
     const app = initializeApp(firebaseConfig);
     getAnalytics(app);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const loginSection = document.getElementById('login-section');
     const dashboard = document.getElementById('dashboard');
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const loginMessage = document.getElementById('login-message');
+
+    const setNameSection = document.getElementById('set-name-section');
+    const displayNameInput = document.getElementById('display-name-input');
+    const setNameBtn = document.getElementById('set-name-btn');
+    const setNameMessage = document.getElementById('set-name-message');
+
+    const displayNameSpan = document.getElementById('display-name');
+    const profileNameSpan = document.getElementById('profile-name');
 
     loginBtn.onclick = () => {
       const email = document.getElementById('email').value;
@@ -288,18 +312,72 @@
       };
     }
 
-    onAuthStateChanged(auth, (user) => {
+    async function fetchDisplayName(uid) {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data().displayName || null;
+      }
+      return null;
+    }
+
+    async function saveDisplayName(uid, name) {
+      try {
+        await setDoc(doc(db, "users", uid), { displayName: name });
+        return true;
+      } catch (e) {
+        console.error("Error saving display name:", e);
+        return false;
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         loginSection.style.display = 'none';
-        dashboard.style.display = 'block';
         logoutBtn.style.display = 'inline-block';
-        updateDashboard();
+
+        // Fetch display name from Firestore
+        const name = await fetchDisplayName(user.uid);
+
+        if (!name) {
+          // No display name yet, show set-name UI
+          setNameSection.style.display = 'block';
+          dashboard.style.display = 'none';
+          setNameMessage.textContent = '';
+          displayNameInput.value = '';
+          setNameBtn.onclick = async () => {
+            const newName = displayNameInput.value.trim();
+            if (!newName) {
+              setNameMessage.textContent = "Please enter a valid name.";
+              return;
+            }
+            const success = await saveDisplayName(user.uid, newName);
+            if (success) {
+              setNameSection.style.display = 'none';
+              loadDashboardWithName(newName);
+            } else {
+              setNameMessage.textContent = "Failed to save name. Try again.";
+            }
+          };
+        } else {
+          // Display name exists, show dashboard
+          setNameSection.style.display = 'none';
+          loadDashboardWithName(name);
+        }
       } else {
         loginSection.style.display = 'block';
         dashboard.style.display = 'none';
+        setNameSection.style.display = 'none';
         logoutBtn.style.display = 'none';
       }
     });
+
+    function loadDashboardWithName(name) {
+      dashboard.style.display = 'block';
+      displayNameSpan.textContent = name;
+      profileNameSpan.textContent = name;
+      updateDashboard();
+    }
   </script>
 </body>
 </html>
