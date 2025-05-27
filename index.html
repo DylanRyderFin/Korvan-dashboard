@@ -26,27 +26,35 @@
       font-weight: bold;
       color: #aaa;
     }
-    input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
+    #chatbox {
+      border-top: 1px solid #444;
+      padding-top: 1rem;
     }
-
-    #login-section, #dashboard, #settings-page {
-      max-width: 800px;
-      margin: auto;
-    }
-
-    #chatbox .chatlog {
+    .chatlog {
       max-height: 300px;
       overflow-y: auto;
+      margin-bottom: 1rem;
       font-size: 0.9rem;
       background: #222;
       padding: 1rem;
       border-radius: 8px;
-      margin-bottom: 1rem;
     }
-    .chatlog div {
-      margin: 0.5rem 0;
+    .chatlog div { margin: 0.5rem 0; }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #login-section {
+      max-width: 300px;
+      margin: 2rem auto;
+      background: #222;
+      padding: 1rem;
+      border-radius: 10px;
+      display: block;
+    }
+    #login-section input {
+      width: 100%;
+      margin-bottom: 0.5rem;
     }
 
     #sidebar {
@@ -87,6 +95,7 @@
       text-decoration: none;
       cursor: pointer;
     }
+
     #open-sidebar {
       position: fixed;
       top: 1rem;
@@ -98,9 +107,9 @@
       padding: 0.5rem 1rem;
       border-radius: 6px;
       z-index: 1001;
-      transition: opacity 0.3s ease;
       cursor: pointer;
     }
+
     #close-sidebar {
       background: none;
       color: #fff;
@@ -110,6 +119,10 @@
       top: 10px;
       right: 15px;
       cursor: pointer;
+    }
+
+    #settings {
+      display: none;
     }
   </style>
 </head>
@@ -127,7 +140,7 @@
   </div>
   <button id="open-sidebar">&#9776;</button>
 
-  <!-- Login + Signup -->
+  <!-- Login Section -->
   <div id="login-section">
     <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
@@ -147,24 +160,20 @@
   <!-- Dashboard -->
   <div id="dashboard" style="display:none;">
     <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
-
     <div class="section">
       <div class="label">Debt Price:</div>
       <div id="debt-amount">$—loading—</div>
     </div>
-
     <div class="section">
       <div class="label">Daily Message:</div>
       <div id="daily-message"><em>—loading—</em></div>
     </div>
-
     <div class="section">
       <div class="label">Profile:</div>
       <p><strong>Name:</strong> <span id="profile-name">User</span></p>
       <p><strong>Nicknames:</strong> puppy, f@g</p>
       <p><strong>Fetishes:</strong> Edging, mind control, gooning, muscle worship, manipulation…</p>
     </div>
-
     <div class="section" id="chatbox">
       <div class="label">Dom AI Chat:</div>
       <div class="chatlog" id="chat-log"></div>
@@ -173,16 +182,15 @@
     </div>
   </div>
 
-  <!-- Settings Page -->
-  <div id="settings-page" style="display:none;">
+  <!-- Settings -->
+  <div id="settings" style="display:none;">
     <h1>Settings</h1>
     <div class="section">
-      <p>Settings options coming soon...</p>
-      <button id="back-to-dashboard">← Back to Dashboard</button>
+      <p>More settings features can be added here soon.</p>
     </div>
   </div>
 
-  <!-- Firebase + Script -->
+  <!-- Firebase and Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import {
@@ -199,6 +207,7 @@
       getDoc
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+    // ✅ Your Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
       authDomain: "andrewdashboardauth.firebaseapp.com",
@@ -222,7 +231,8 @@
         "Every breath you take is mine. Every edge? My control.",
         "You don’t even think anymore. Just obey, dumb muscle toy.",
       ];
-      document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
+      document.getElementById("daily-message").textContent =
+        messages[Math.floor(Math.random() * messages.length)];
     }
 
     function sendMessage() {
@@ -264,53 +274,48 @@
     function showDashboard() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('settings-page').style.display = 'none';
+      document.getElementById('settings').style.display = 'none';
     }
 
     function showLogin() {
       document.getElementById('login-section').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('settings-page').style.display = 'none';
+      document.getElementById('settings').style.display = 'none';
     }
 
     function showSettings() {
       document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('settings-page').style.display = 'block';
+      document.getElementById('settings').style.display = 'block';
     }
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const docSnap = await getDoc(doc(db, "users", user.uid));
-        const name = docSnap.exists() ? docSnap.data().name : user.email;
+        const name = docSnap.exists() ? docSnap.data().name : "User";
         updateDashboard(name);
         showDashboard();
-        document.getElementById('logout-btn').style.display = 'inline-block';
+        document.getElementById('logout-btn').style.display = 'block';
       } else {
         showLogin();
         document.getElementById('logout-btn').style.display = 'none';
       }
-      document.getElementById('login-message').textContent = '';
     });
 
-    // Sidebar toggle
-    const sidebar = document.getElementById('sidebar');
-    document.getElementById('open-sidebar').onclick = () => sidebar.classList.add('open');
-    document.getElementById('close-sidebar').onclick = () => sidebar.classList.remove('open');
+    // Sidebar menu toggle
+    document.getElementById('open-sidebar').onclick = () =>
+      document.getElementById('sidebar').classList.add('open');
+    document.getElementById('close-sidebar').onclick = () =>
+      document.getElementById('sidebar').classList.remove('open');
 
-    // Navigation handlers
+    // Navigation links
     document.getElementById('menu-dashboard').onclick = () => {
       showDashboard();
-      sidebar.classList.remove('open');
+      document.getElementById('sidebar').classList.remove('open');
     };
     document.getElementById('menu-settings').onclick = () => {
       showSettings();
-      sidebar.classList.remove('open');
+      document.getElementById('sidebar').classList.remove('open');
     };
-    document.getElementById('back-to-dashboard').onclick = () => showDashboard();
-  </script>
-</body>
-</html>
-
   </script>
 </body>
 </html>
