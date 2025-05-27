@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Andrew’s Dashboard</title>
+  <title>Fag Hub</title>
   <style>
     body {
       background: #111;
@@ -60,13 +60,19 @@
 </head>
 <body>
 
-  <!-- Login form -->
+  <!-- Login + Signup -->
   <div id="login-section">
-    <h2>Login to Andrew’s Dashboard</h2>
+    <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
     <button id="login-btn">Login</button>
     <button id="logout-btn" style="display:none;">Logout</button>
+
+    <h3>Or Sign Up</h3>
+    <input id="signup-email" type="email" placeholder="New Email" />
+    <input id="signup-password" type="password" placeholder="New Password" />
+    <button id="signup-btn">Sign Up</button>
+
     <div id="login-message" style="color:#f66; margin-top:0.5rem;"></div>
   </div>
 
@@ -100,7 +106,6 @@
   </div>
 
   <script>
-    // Placeholder messages & debt
     function updateDashboard() {
       document.getElementById('debt-amount').textContent = "$124.80";
       const messages = [
@@ -129,7 +134,13 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
@@ -165,15 +176,31 @@
       signOut(auth);
     };
 
+    // SIGN UP logic
+    const signupBtn = document.getElementById('signup-btn');
+    if (signupBtn) {
+      signupBtn.onclick = () => {
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        loginMessage.textContent = '';
+        createUserWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            loginMessage.textContent = 'Sign-up successful. You are now logged in.';
+          })
+          .catch((error) => {
+            loginMessage.textContent = error.message;
+          });
+      };
+    }
+
+    // Monitor login state
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User logged in
         loginSection.style.display = 'none';
         dashboard.style.display = 'block';
         logoutBtn.style.display = 'inline-block';
         updateDashboard();
       } else {
-        // No user logged in
         loginSection.style.display = 'block';
         dashboard.style.display = 'none';
         logoutBtn.style.display = 'none';
