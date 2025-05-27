@@ -10,6 +10,7 @@
       color: #eee;
       font-family: 'Arial', sans-serif;
       padding: 2rem;
+      margin: 0;
     }
     h1 {
       font-size: 2rem;
@@ -46,7 +47,7 @@
     }
     #login-section {
       max-width: 300px;
-      margin: 2rem auto;
+      margin: 4rem auto;
       background: #222;
       padding: 1rem;
       border-radius: 10px;
@@ -56,7 +57,6 @@
       width: 100%;
       margin-bottom: 0.5rem;
     }
-
     #sidebar {
       position: fixed;
       top: 0;
@@ -95,7 +95,6 @@
       text-decoration: none;
       cursor: pointer;
     }
-
     #open-sidebar {
       position: fixed;
       top: 1rem;
@@ -109,12 +108,11 @@
       border-radius: 6px;
       z-index: 1001;
       cursor: pointer;
-      display: block; /* visible by default */
+      display: none; /* hidden initially, only shown after login */
       line-height: 1;
       text-align: center;
       padding: 0;
     }
-
     #close-sidebar {
       background: none;
       color: #fff;
@@ -125,72 +123,69 @@
       right: 15px;
       cursor: pointer;
     }
-
     #login-message {
       color: #f66;
       margin-top: 0.5rem;
     }
-
-    /* Settings modal styles */
+    /* Settings modal styling */
     #settings-modal {
+      display: none;
       position: fixed;
       top: 50%;
       left: 50%;
-      width: 90%;
-      max-width: 400px;
-      max-height: 80%;
-      overflow-y: auto;
-      background: #222;
-      border: 1px solid #444;
-      border-radius: 12px;
+      width: 320px;
       transform: translate(-50%, -50%);
+      background: #222;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #ff69b4;
+      padding: 1.5rem;
       z-index: 1100;
-      padding: 1rem 2rem 2rem;
-      display: none;
-      box-shadow: 0 0 15px #ff69b4;
+      color: #eee;
     }
     #settings-modal h2 {
-      color: #ff69b4;
       margin-top: 0;
+      color: #ff69b4;
     }
     #settings-modal label {
       display: block;
-      margin: 1rem 0 0.3rem;
+      margin-top: 1rem;
       font-weight: bold;
-      color: #ccc;
+      color: #ff69b4;
     }
-    #settings-modal input, #settings-modal textarea {
+    #settings-modal input[type="text"],
+    #settings-modal input[type="password"] {
       width: 100%;
-      padding: 0.4rem 0.6rem;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
       border-radius: 6px;
-      border: 1px solid #555;
-      background: #111;
+      border: none;
+      background: #333;
       color: #eee;
-      font-size: 1rem;
-      resize: vertical;
     }
     #settings-modal button {
       margin-top: 1.5rem;
-      padding: 0.6rem 1.2rem;
+      padding: 0.7rem;
+      width: 100%;
       background: #ff69b4;
-      color: #111;
       border: none;
-      border-radius: 6px;
+      color: #111;
       font-weight: bold;
       cursor: pointer;
+      border-radius: 8px;
     }
     #settings-close {
       position: absolute;
-      top: 5px;
-      right: 10px;
-      font-size: 1.6rem;
-      color: #ff69b4;
+      top: 8px;
+      right: 12px;
       background: none;
       border: none;
+      font-size: 1.5rem;
+      color: #ff69b4;
       cursor: pointer;
     }
-    #passwordChangeStatus {
-      margin-top: 0.6rem;
+    #password-change-status {
+      margin-top: 1rem;
+      color: #90ee90;
       font-weight: bold;
     }
   </style>
@@ -210,11 +205,11 @@
   </div>
   <button id="open-sidebar">&#9776;</button>
 
-  <!-- Login -->
+  <!-- Login Section -->
   <div id="login-section">
     <h2>Login to Fag Hub</h2>
-    <input id="email" type="text" placeholder="Username" />
-    <input id="password" type="password" placeholder="Password" />
+    <input id="email" type="text" placeholder="Username" autocomplete="off" />
+    <input id="password" type="password" placeholder="Password" autocomplete="off" />
     <button id="login-btn">Login</button>
     <div id="login-message"></div>
   </div>
@@ -243,68 +238,65 @@
     <div class="section" id="chatbox">
       <div class="label">Dom AI Chat:</div>
       <div class="chatlog" id="chat-log"></div>
-      <input id="user-input" placeholder="Type to your dom..." />
+      <input id="user-input" placeholder="Type to your dom..." autocomplete="off" />
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
 
   <!-- Settings Modal -->
-  <div id="settings-modal">
-    <button id="settings-close">&times;</button>
-    <h2>Settings</h2>
+  <div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <button id="settings-close" title="Close settings">&times;</button>
+    <h2 id="settings-title">Settings</h2>
 
-    <label for="nameInput">Name:</label>
-    <input id="nameInput" type="text" />
+    <label for="name-input">Name</label>
+    <input id="name-input" type="text" />
 
-    <label for="nicknamesInput">Nicknames (comma separated):</label>
-    <input id="nicknamesInput" type="text" />
+    <label for="nicknames-input">Nicknames</label>
+    <input id="nicknames-input" type="text" />
 
-    <label for="fetishesInput">Fetishes (comma separated):</label>
-    <input id="fetishesInput" type="text" />
+    <label for="fetishes-input">Fetishes</label>
+    <input id="fetishes-input" type="text" />
 
-    <label for="notesInput">Notes:</label>
-    <textarea id="notesInput" rows="3" placeholder="Any extra notes..."></textarea>
+    <label for="currentPassword">Current Password</label>
+    <input id="currentPassword" type="password" autocomplete="off" />
 
-    <h3 style="margin-top:1.5rem; color:#ff69b4;">Change Password</h3>
+    <label for="newPassword">New Password</label>
+    <input id="newPassword" type="password" autocomplete="off" />
 
-    <label for="currentPassword">Current Password:</label>
-    <input id="currentPassword" type="password" />
+    <label for="confirmNewPassword">Confirm New Password</label>
+    <input id="confirmNewPassword" type="password" autocomplete="off" />
 
-    <label for="newPassword">New Password:</label>
-    <input id="newPassword" type="password" />
+    <button id="save-settings-btn">Save Changes</button>
 
-    <label for="confirmNewPassword">Confirm New Password:</label>
-    <input id="confirmNewPassword" type="password" />
-
-    <button id="passwordChangeBtn">Change Password</button>
-    <div id="passwordChangeStatus"></div>
-
-    <button id="saveSettingsBtn">Save Settings</button>
+    <div id="password-change-status"></div>
   </div>
 
 <script>
   // Hardcoded users list
   const users = [
-    { username: "Alpha Dylan", password: "Ohana2311!" },
-    { username: "Andrew", password: "Puppy" }
+    { username: "Alpha Dylan", password: "Ohana2311!", name: "Alpha Dylan", nicknames: "Alpha, Boss", fetishes: "Control, Domination" },
+    { username: "Andrew", password: "Puppy", name: "Andrew", nicknames: "puppy, f@g", fetishes: "Edging, mind control, gooning, muscle worship, manipulation…" }
   ];
+
+  let loggedInUser = null;
 
   const sidebar = document.getElementById('sidebar');
   const openSidebarBtn = document.getElementById('open-sidebar');
   const loginSection = document.getElementById('login-section');
   const dashboard = document.getElementById('dashboard');
   const loginMessage = document.getElementById('login-message');
+
   const settingsModal = document.getElementById('settings-modal');
   const settingsCloseBtn = document.getElementById('settings-close');
+  const saveSettingsBtn = document.getElementById('save-settings-btn');
 
-  // Keep track of logged in user object
-  let loggedInUser = null;
-
+  // Update dashboard profile and daily message
   function updateDashboard(name, nicknames, fetishes) {
     document.getElementById('display-name').textContent = name;
     document.getElementById('profile-name').textContent = name;
     document.getElementById('profile-nicknames').textContent = nicknames;
     document.getElementById('profile-fetishes').textContent = fetishes;
+
     const messages = [
       "You're only useful on your knees, aren't you, puppy?",
       "Every breath you take is mine. Every edge? My control.",
@@ -313,41 +305,42 @@
     document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
   }
 
+  // Show dashboard after login
   function showDashboard() {
     loginSection.style.display = 'none';
     dashboard.style.display = 'block';
     openSidebarBtn.style.display = 'block';
     sidebar.classList.remove('open');
-    settingsModal.style.display = 'none';
   }
 
+  // Show login screen
   function showLogin() {
     loginSection.style.display = 'block';
     dashboard.style.display = 'none';
     openSidebarBtn.style.display = 'none';
     sidebar.classList.remove('open');
     loginMessage.textContent = '';
-    settingsModal.style.display = 'none';
-    loggedInUser = null;
   }
 
+  // Show settings modal and populate inputs with current user data
   function showSettings() {
-    if (!loggedInUser) {
-      alert("You must be logged in to access settings.");
-      return;
-    }
-    // Pre-fill inputs with current values
-    document.getElementById('nameInput').value = loggedInUser.name || loggedInUser.username;
-    document.getElementById('nicknamesInput').value = loggedInUser.nicknames || "puppy, f@g";
-    document.getElementById('fetishesInput').value = loggedInUser.fetishes || "Edging, mind control, gooning, muscle worship, manipulation…";
-    document.getElementById('notesInput').value = loggedInUser.notes || "";
-
-    document.getElementById('passwordChangeStatus').textContent = "";
-
+    if (!loggedInUser) return;
     settingsModal.style.display = 'block';
+    document.getElementById('name-input').value = loggedInUser.name;
+    document.getElementById('nicknames-input').value = loggedInUser.nicknames;
+    document.getElementById('fetishes-input').value = loggedInUser.fetishes;
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+    document.getElementById('password-change-status').textContent = '';
   }
 
-  // Login button handler
+  // Hide settings modal
+  function hideSettings() {
+    settingsModal.style.display = 'none';
+  }
+
+  // Login button event
   document.getElementById('login-btn').addEventListener('click', () => {
     const usernameInput = document.getElementById('email').value.trim();
     const passwordInput = document.getElementById('password').value;
@@ -355,12 +348,6 @@
 
     if (user) {
       loggedInUser = user;
-      // Set default values if not present
-      if (!loggedInUser.name) loggedInUser.name = loggedInUser.username;
-      if (!loggedInUser.nicknames) loggedInUser.nicknames = "puppy, f@g";
-      if (!loggedInUser.fetishes) loggedInUser.fetishes = "Edging, mind control, gooning, muscle worship, manipulation…";
-      if (!loggedInUser.notes) loggedInUser.notes = "";
-
       updateDashboard(loggedInUser.name, loggedInUser.nicknames, loggedInUser.fetishes);
       showDashboard();
     } else {
@@ -368,116 +355,104 @@
     }
   });
 
+  // Logout function
+  function logout() {
+    loggedInUser = null;
+    showLogin();
+  }
+
+  // Sidebar open/close toggling
   openSidebarBtn.onclick = () => {
     sidebar.classList.add('open');
-    openSidebarBtn.style.display = 'none';  // hide open button
+    openSidebarBtn.style.display = 'none';
   };
 
   document.getElementById('close-sidebar').onclick = () => {
     sidebar.classList.remove('open');
-    openSidebarBtn.style.display = 'block'; // show open button
+    openSidebarBtn.style.display = 'block';
   };
 
-  function logout() {
-    showLogin();
-  }
+  // Settings modal close button
+  settingsCloseBtn.onclick = hideSettings;
 
-  // Settings close button
-  settingsCloseBtn.onclick = () => {
-    settingsModal.style.display = 'none';
-  };
-
-  // Save settings button handler
-  document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+  // Save settings button
+  saveSettingsBtn.onclick = () => {
     if (!loggedInUser) return;
 
-    const newName = document.getElementById('nameInput').value.trim() || loggedInUser.username;
-    const newNicknames = document.getElementById('nicknamesInput').value.trim() || "";
-    const newFetishes = document.getElementById('fetishesInput').value.trim() || "";
-    const newNotes = document.getElementById('notesInput').value.trim();
+    const newName = document.getElementById('name-input').value.trim();
+    const newNicknames = document.getElementById('nicknames-input').value.trim();
+    const newFetishes = document.getElementById('fetishes-input').value.trim();
 
-    loggedInUser.name = newName;
-    loggedInUser.nicknames = newNicknames;
-    loggedInUser.fetishes = newFetishes;
-    loggedInUser.notes = newNotes;
+    const currentPass = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const confirmPass = document.getElementById('confirmNewPassword').value;
 
-    updateDashboard(newName, newNicknames, newFetishes);
-
-    alert("Settings saved.");
-    settingsModal.style.display = 'none';
-  });
-
-  // Password change button handler
-  const passwordChangeBtn = document.getElementById('passwordChangeBtn');
-  const passwordChangeStatus = document.getElementById('passwordChangeStatus');
-
-  passwordChangeBtn.addEventListener('click', () => {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-    passwordChangeStatus.style.color = '#ff69b4';
-
-    if (!currentPassword || !newPassword || !confirmNewPassword) {
-      passwordChangeStatus.textContent = "Fill all password fields.";
-      return;
-    }
-    if (!loggedInUser) {
-      passwordChangeStatus.textContent = "You must be logged in.";
-      return;
-    }
-    if (currentPassword !== loggedInUser.password) {
-      passwordChangeStatus.textContent = "Current password is incorrect.";
-      return;
-    }
-    if (newPassword !== confirmNewPassword) {
-      passwordChangeStatus.textContent = "New passwords do not match.";
-      return;
-    }
-    if (newPassword.length < 4) {
-      passwordChangeStatus.textContent = "New password too short.";
-      return;
+    // Validate passwords if changing
+    if (currentPass || newPass || confirmPass) {
+      if (currentPass !== loggedInUser.password) {
+        alert("Current password is incorrect.");
+        return;
+      }
+      if (newPass !== confirmPass) {
+        alert("New passwords do not match.");
+        return;
+      }
+      if (newPass.length < 4) {
+        alert("New password must be at least 4 characters.");
+        return;
+      }
+      loggedInUser.password = newPass;
+      document.getElementById('password-change-status').textContent = "Password changed successfully!";
+    } else {
+      document.getElementById('password-change-status').textContent = "";
     }
 
-    // Change password in users array (simulate DB)
-    loggedInUser.password = newPassword;
-    passwordChangeStatus.style.color = '#90ee90';
-    passwordChangeStatus.textContent = "Password changed successfully.";
+    loggedInUser.name = newName || loggedInUser.name;
+    loggedInUser.nicknames = newNicknames || loggedInUser.nicknames;
+    loggedInUser.fetishes = newFetishes || loggedInUser.fetishes;
 
-    // Clear password fields
-    document.getElementById('currentPassword').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('confirmNewPassword').value = '';
-  });
+    updateDashboard(loggedInUser.name, loggedInUser.nicknames, loggedInUser.fetishes);
+    hideSettings();
+  };
 
-  // Dummy chat send (no backend)
+  // Simple dom AI chat simulation (echo user message)
   function sendMessage() {
     const input = document.getElementById('user-input');
-    const chatLog = document.getElementById('chat-log');
     const msg = input.value.trim();
     if (!msg) return;
+    const chatLog = document.getElementById('chat-log');
+
+    // User message
     const userDiv = document.createElement('div');
     userDiv.textContent = "You: " + msg;
-    userDiv.style.color = '#ff69b4';
+    userDiv.style.color = "#ff69b4";
     chatLog.appendChild(userDiv);
-    input.value = '';
 
-    // Simple dom AI response (demo)
-    setTimeout(() => {
-      const domReplies = [
-        "Good boy.",
-        "Now get on your knees.",
-        "You belong to me.",
-        "Such a pathetic toy.",
-        "Edge for me, slave."
-      ];
-      const domDiv = document.createElement('div');
-      domDiv.textContent = "Dom: " + domReplies[Math.floor(Math.random() * domReplies.length)];
-      domDiv.style.color = '#90ee90';
-      chatLog.appendChild(domDiv);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }, 1000);
+    // Dom reply simulated
+    const domDiv = document.createElement('div');
+    domDiv.textContent = "Dom: " + generateDomResponse(msg);
+    domDiv.style.color = "#ddd";
+    chatLog.appendChild(domDiv);
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+    input.value = "";
   }
+
+  // Simple dom response generator
+  function generateDomResponse(input) {
+    const responses = [
+      "Good boy, now obey.",
+      "You're such a pathetic toy.",
+      "Keep going, don't stop till I say.",
+      "That's right, you belong to me.",
+      "You live for my control."
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  // Initialize: show login, hide sidebar toggle
+  showLogin();
+
 </script>
 
 </body>
