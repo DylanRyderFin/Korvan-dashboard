@@ -57,22 +57,29 @@
       margin-bottom: 0.5rem;
     }
 
-    /* Sidebar styles */
+    /* Sidebar styles with invisible & fade + slide */
     #sidebar {
       position: fixed;
       top: 0;
-      left: -250px;
+      left: 0;
       width: 250px;
       height: 100%;
       background: #1a1a1a;
       color: #fff;
       padding: 1rem;
       box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-      transition: left 0.3s ease;
+
+      visibility: hidden;
+      opacity: 0;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s linear 0.3s;
       z-index: 1000;
     }
     #sidebar.open {
-      left: 0;
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(0);
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
     #sidebar h2 {
       margin-top: 0;
@@ -89,6 +96,7 @@
       color: #fff;
       text-decoration: none;
     }
+
     #open-sidebar {
       position: fixed;
       top: 1rem;
@@ -101,11 +109,13 @@
       border-radius: 6px;
       z-index: 1001;
       transition: opacity 0.3s ease;
+      cursor: pointer;
     }
     #open-sidebar.fade {
       opacity: 0;
       pointer-events: none;
     }
+
     #close-sidebar {
       background: none;
       color: #fff;
@@ -202,18 +212,18 @@
       }, 1000);
     }
 
-    // Sidebar toggle logic with fade effect on button
+    // Sidebar toggle logic with fade effect on button & invisible sidebar
     const sidebar = document.getElementById('sidebar');
     const openBtn = document.getElementById('open-sidebar');
     const closeBtn = document.getElementById('close-sidebar');
 
     openBtn.onclick = () => {
       sidebar.classList.add('open');
-      openBtn.classList.add('fade'); // fade out button
+      openBtn.classList.add('fade'); // fade out open button
     };
     closeBtn.onclick = () => {
       sidebar.classList.remove('open');
-      openBtn.classList.remove('fade'); // fade button back in
+      openBtn.classList.remove('fade'); // fade open button back in
     };
   </script>
 
