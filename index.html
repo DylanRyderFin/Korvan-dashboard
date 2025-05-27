@@ -107,7 +107,9 @@
       padding: 0.5rem 1rem;
       border-radius: 6px;
       z-index: 1001;
+      transition: opacity 0.3s ease;
       cursor: pointer;
+      display: none;
     }
 
     #close-sidebar {
@@ -121,8 +123,11 @@
       cursor: pointer;
     }
 
-    #settings {
+    #settings-section {
       display: none;
+      background: #1c1c1c;
+      padding: 1rem;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -133,26 +138,26 @@
     <button id="close-sidebar">&times;</button>
     <h2>Menu</h2>
     <ul>
-      <li><a id="menu-dashboard">Dashboard</a></li>
-      <li><a id="menu-settings">Settings</a></li>
+      <li><a onclick="showDashboard()">Dashboard</a></li>
+      <li><a onclick="showSettings()">Settings</a></li>
       <li><a href="#">Submit Debt</a></li>
     </ul>
   </div>
   <button id="open-sidebar">&#9776;</button>
 
-  <!-- Login Section -->
+  <!-- Login + Signup -->
   <div id="login-section">
     <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
-    <button id="login-btn">Login</button>
-    <button id="logout-btn" style="display:none;">Logout</button>
+    <button onclick="login()">Login</button>
+    <button onclick="logout()" style="display:none;" id="logout-btn">Logout</button>
 
     <h3>Or Sign Up</h3>
     <input id="signup-name" type="text" placeholder="Name" />
     <input id="signup-email" type="email" placeholder="New Email" />
     <input id="signup-password" type="password" placeholder="New Password" />
-    <button id="signup-btn">Sign Up</button>
+    <button onclick="signup()">Sign Up</button>
 
     <div id="login-message" style="color:#f66; margin-top:0.5rem;"></div>
   </div>
@@ -160,20 +165,24 @@
   <!-- Dashboard -->
   <div id="dashboard" style="display:none;">
     <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
+
     <div class="section">
       <div class="label">Debt Price:</div>
-      <div id="debt-amount">$—loading—</div>
+      <div id="debt-amount">$124.80</div>
     </div>
+
     <div class="section">
       <div class="label">Daily Message:</div>
       <div id="daily-message"><em>—loading—</em></div>
     </div>
+
     <div class="section">
       <div class="label">Profile:</div>
       <p><strong>Name:</strong> <span id="profile-name">User</span></p>
       <p><strong>Nicknames:</strong> puppy, f@g</p>
       <p><strong>Fetishes:</strong> Edging, mind control, gooning, muscle worship, manipulation…</p>
     </div>
+
     <div class="section" id="chatbox">
       <div class="label">Dom AI Chat:</div>
       <div class="chatlog" id="chat-log"></div>
@@ -182,62 +191,68 @@
     </div>
   </div>
 
-  <!-- Settings -->
-  <div id="settings" style="display:none;">
-    <h1>Settings</h1>
-    <div class="section">
-      <p>More settings features can be added here soon.</p>
-    </div>
+  <!-- Settings Page -->
+  <div id="settings-section" class="section">
+    <h2>Settings</h2>
+    <p>Coming soon: profile customization, notification preferences, and more.</p>
   </div>
 
-  <!-- Firebase and Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signInWithEmailAndPassword,
-      signOut,
-      createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+  <!-- JS -->
+  <script>
+    const users = JSON.parse(localStorage.getItem("users")) || {};
 
-    // ✅ Your Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
-      authDomain: "andrewdashboardauth.firebaseapp.com",
-      projectId: "andrewdashboardauth",
-      storageBucket: "andrewdashboardauth.firebasestorage.app",
-      messagingSenderId: "165854560081",
-      appId: "1:165854560081:web:804b9490c6116a3b025d70",
-      measurementId: "G-1PKMZBEFTX"
-    };
+    function signup() {
+      const name = document.getElementById("signup-name").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+      if (!name || !email || !password) {
+        return showMessage("All signup fields required.");
+      }
+      if (users[email]) {
+        return showMessage("User already exists.");
+      }
 
-    function updateDashboard(name = "User") {
-      document.getElementById('display-name').textContent = name;
-      document.getElementById('profile-name').textContent = name;
-      document.getElementById('debt-amount').textContent = "$124.80";
+      users[email] = { name, password };
+      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("loggedInUser", email);
+      showDashboard();
+    }
+
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      if (!users[email] || users[email].password !== password) {
+        return showMessage("Invalid credentials.");
+      }
+      localStorage.setItem("loggedInUser", email);
+      showDashboard();
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("settings-section").style.display = "none";
+      document.getElementById("login-section").style.display = "block";
+      document.getElementById("open-sidebar").style.display = "none";
+    }
+
+    function showMessage(msg) {
+      document.getElementById("login-message").textContent = msg;
+    }
+
+    function getRandomMessage() {
       const messages = [
         "You're only useful on your knees, aren't you, puppy?",
         "Every breath you take is mine. Every edge? My control.",
-        "You don’t even think anymore. Just obey, dumb muscle toy.",
+        "You don’t even think anymore. Just obey, dumb muscle toy."
       ];
-      document.getElementById("daily-message").textContent =
-        messages[Math.floor(Math.random() * messages.length)];
+      return messages[Math.floor(Math.random() * messages.length)];
     }
 
     function sendMessage() {
-      const input = document.getElementById('user-input');
-      const log = document.getElementById('chat-log');
+      const input = document.getElementById("user-input");
+      const log = document.getElementById("chat-log");
       const userMsg = input.value.trim();
       if (!userMsg) return;
       log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
@@ -245,76 +260,37 @@
       log.scrollTop = log.scrollHeight;
     }
 
-    document.getElementById('signup-btn').onclick = async () => {
-      const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", userCred.user.uid), { name });
-      } catch (error) {
-        document.getElementById('login-message').textContent = error.message;
-      }
-    };
-
-    document.getElementById('login-btn').onclick = async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        document.getElementById('login-message').textContent = error.message;
-      }
-    };
-
-    document.getElementById('logout-btn').onclick = async () => {
-      await signOut(auth);
-    };
-
     function showDashboard() {
-      document.getElementById('login-section').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('settings').style.display = 'none';
-    }
-
-    function showLogin() {
-      document.getElementById('login-section').style.display = 'block';
-      document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('settings').style.display = 'none';
+      const email = localStorage.getItem("loggedInUser");
+      if (!email || !users[email]) return;
+      const name = users[email].name;
+      document.getElementById("display-name").textContent = name;
+      document.getElementById("profile-name").textContent = name;
+      document.getElementById("daily-message").textContent = getRandomMessage();
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("settings-section").style.display = "none";
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("open-sidebar").style.display = "block";
     }
 
     function showSettings() {
-      document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('settings').style.display = 'block';
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("settings-section").style.display = "block";
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-        const name = docSnap.exists() ? docSnap.data().name : "User";
-        updateDashboard(name);
-        showDashboard();
-        document.getElementById('logout-btn').style.display = 'block';
-      } else {
-        showLogin();
-        document.getElementById('logout-btn').style.display = 'none';
-      }
-    });
-
-    // Sidebar menu toggle
-    document.getElementById('open-sidebar').onclick = () =>
-      document.getElementById('sidebar').classList.add('open');
-    document.getElementById('close-sidebar').onclick = () =>
-      document.getElementById('sidebar').classList.remove('open');
-
-    // Navigation links
-    document.getElementById('menu-dashboard').onclick = () => {
-      showDashboard();
-      document.getElementById('sidebar').classList.remove('open');
+    // Sidebar toggle
+    document.getElementById("open-sidebar").onclick = () => {
+      document.getElementById("sidebar").classList.add("open");
     };
-    document.getElementById('menu-settings').onclick = () => {
-      showSettings();
-      document.getElementById('sidebar').classList.remove('open');
+    document.getElementById("close-sidebar").onclick = () => {
+      document.getElementById("sidebar").classList.remove("open");
+    };
+
+    // Auto-login
+    window.onload = () => {
+      if (localStorage.getItem("loggedInUser")) {
+        showDashboard();
+      }
     };
   </script>
 </body>
