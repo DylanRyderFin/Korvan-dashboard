@@ -50,12 +50,13 @@
       background: #222;
       padding: 1rem;
       border-radius: 10px;
-      display: none;
+      display: block;
     }
     #login-section input {
       width: 100%;
       margin-bottom: 0.5rem;
     }
+
     #sidebar {
       position: fixed;
       top: 0;
@@ -93,6 +94,7 @@
       color: #fff;
       text-decoration: none;
     }
+
     #open-sidebar {
       position: fixed;
       top: 1rem;
@@ -107,6 +109,7 @@
       transition: opacity 0.3s ease;
       cursor: pointer;
     }
+
     #close-sidebar {
       background: none;
       color: #fff;
@@ -134,7 +137,7 @@
   <button id="open-sidebar">&#9776;</button>
 
   <!-- Login + Signup -->
-  <div id="login-section" style="display:block;">
+  <div id="login-section">
     <h2>Login to Fag Hub</h2>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
@@ -142,6 +145,7 @@
     <button id="logout-btn" style="display:none;">Logout</button>
 
     <h3>Or Sign Up</h3>
+    <input id="signup-name" type="text" placeholder="Name" />
     <input id="signup-email" type="email" placeholder="New Email" />
     <input id="signup-password" type="password" placeholder="New Password" />
     <button id="signup-btn">Sign Up</button>
@@ -151,7 +155,7 @@
 
   <!-- Dashboard -->
   <div id="dashboard" style="display:none;">
-    <h1>Welcome, <span id="display-name">Andrew</span> 🖤</h1>
+    <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
 
     <div class="section">
       <div class="label">Debt Price:</div>
@@ -165,7 +169,7 @@
 
     <div class="section">
       <div class="label">Profile:</div>
-      <p><strong>Name:</strong> <span id="profile-name">Andrew</span></p>
+      <p><strong>Name:</strong> <span id="profile-name">User</span></p>
       <p><strong>Nicknames:</strong> puppy, f@g</p>
       <p><strong>Fetishes:</strong> Edging, mind control, gooning, muscle worship, manipulation…</p>
     </div>
@@ -178,16 +182,46 @@
     </div>
   </div>
 
-  <script>
-    function updateDashboard() {
+  <!-- Firebase + Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      signOut,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    function updateDashboard(name = "User") {
+      document.getElementById('display-name').textContent = name;
+      document.getElementById('profile-name').textContent = name;
       document.getElementById('debt-amount').textContent = "$124.80";
       const messages = [
         "You're only useful on your knees, aren't you, puppy?",
         "Every breath you take is mine. Every edge? My control.",
         "You don’t even think anymore. Just obey, dumb muscle toy.",
       ];
-      const msg = messages[Math.floor(Math.random() * messages.length)];
-      document.getElementById("daily-message").textContent = msg;
+      document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
     }
 
     function sendMessage() {
@@ -201,19 +235,34 @@
     }
 
     document.getElementById('signup-btn').onclick = async () => {
+      const name = document.getElementById('signup-name').value.trim();
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", userCred.user.uid), { name });
       } catch (error) {
         document.getElementById('login-message').textContent = error.message;
       }
     };
 
+    document.getElementById('login-btn').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        document.getElementById('login-message').textContent = error.message;
+      }
+    };
+
+    document.getElementById('logout-btn').onclick = async () => {
+      await signOut(auth);
+    };
+
     function showDashboard() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      updateDashboard();
     }
 
     function showLogin() {
@@ -223,24 +272,14 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userDocRef);
-        let name = "Andrew";
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          name = userData.name || name;
-        }
-        document.getElementById('display-name').textContent = name;
-        document.getElementById('profile-name').textContent = name;
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        const name = docSnap.exists() ? docSnap.data().name : "User";
+        updateDashboard(name);
         showDashboard();
       } else {
         showLogin();
       }
     });
-  </script>
-</body>
-</html>
-
   </script>
 </body>
 </html>
