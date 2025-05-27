@@ -296,6 +296,8 @@
     const nameModalInput = document.getElementById("name-modal-input");
     const nameModalBtn = document.getElementById("name-modal-btn");
 
+    let justSignedUp = false;
+
     loginBtn.onclick = () => {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -310,50 +312,75 @@
       signOut(auth).catch(console.error);
     };
 
-    document.getElementById('signup-btn').onclick = () => {
+    document.getElementById('signup-btn').onclick = async () => {
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       loginMessage.textContent = '';
-      createUserWithEmailAndPassword(auth, email, password)
-        .catch((error) => {
-          loginMessage.textContent = error.message;
-        });
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        justSignedUp = true; // mark signup happened
+        // Immediately show name modal:
+        loginSection.style.display = 'none';
+        dashboard.style.display = 'none';
+        nameModal.style.display = 'flex';
+        nameModalInput.value = '';
+        nameModalInput.focus();
+      } catch (error) {
+        loginMessage.textContent = error.message;
+      }
     };
 
-    // Save name function
-    async function saveName(uid, name) {
-      const userDoc = doc(db, "users", uid);
-      await setDoc(userDoc, { name }, { merge: true });
-    }
+    nameModalBtn.onclick = async () => {
+      const name = nameModalInput.value.trim();
+      if (!name) return;
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, "users", user.uid), { displayName: name });
+        updateDisplayNameUI(name);
+        nameModal.style.display = "none";
+        dashboard.style.display = "block";
+        updateDashboard();
+      }
+    };
 
-    // Load name function
     async function loadName(uid) {
-      const userDoc = doc(db, "users", uid);
-      const docSnap = await getDoc(userDoc);
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return docSnap.data().name || null;
+        return docSnap.data().displayName || null;
       }
       return null;
     }
 
-    onAuthStateChanged(auth, async user => {
+    function updateDisplayNameUI(name) {
+      displayNameSpan.textContent = name;
+      profileNameSpan.textContent = name;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        loginSection.style.display = 'none';
         logoutBtn.style.display = 'inline-block';
 
+        if (justSignedUp) {
+          // After signup, skip fetching name, just wait for modal input
+          justSignedUp = false;
+          // Already showing modal from signup handler
+          return;
+        }
+
+        // Normal login flow: fetch name from Firestore
         const name = await loadName(user.uid);
 
         if (name) {
-          // If name exists, show dashboard with name
-          displayNameSpan.textContent = name;
-          profileNameSpan.textContent = name;
+          updateDisplayNameUI(name);
           dashboard.style.display = 'block';
           nameModal.style.display = 'none';
+          loginSection.style.display = 'none';
           updateDashboard();
         } else {
-          // Show name modal to ask for name
           nameModal.style.display = 'flex';
           dashboard.style.display = 'none';
+          loginSection.style.display = 'none';
           nameModalInput.value = '';
           nameModalInput.focus();
         }
@@ -364,26 +391,6 @@
         nameModal.style.display = 'none';
       }
     });
-
-    nameModalBtn.onclick = async () => {
-      const name = nameModalInput.value.trim();
-      if (!name) {
-        alert("Please enter your name.");
-        return;
-      }
-      const user = auth.currentUser;
-      if (!user) {
-        alert("No user logged in.");
-        return;
-      }
-      await saveName(user.uid, name);
-      displayNameSpan.textContent = name;
-      profileNameSpan.textContent = name;
-      nameModal.style.display = 'none';
-      loginSection.style.display = 'none';
-      dashboard.style.display = 'block';
-      updateDashboard();
-    };
   </script>
 </body>
 </html>
