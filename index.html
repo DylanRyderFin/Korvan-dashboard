@@ -100,6 +100,11 @@
       padding: 0.5rem 1rem;
       border-radius: 6px;
       z-index: 1001;
+      transition: opacity 0.3s ease;
+    }
+    #open-sidebar.fade {
+      opacity: 0;
+      pointer-events: none;
     }
     #close-sidebar {
       background: none;
@@ -197,12 +202,18 @@
       }, 1000);
     }
 
-    // Sidebar toggle logic
-    document.getElementById('open-sidebar').onclick = () => {
-      document.getElementById('sidebar').classList.add('open');
+    // Sidebar toggle logic with fade effect on button
+    const sidebar = document.getElementById('sidebar');
+    const openBtn = document.getElementById('open-sidebar');
+    const closeBtn = document.getElementById('close-sidebar');
+
+    openBtn.onclick = () => {
+      sidebar.classList.add('open');
+      openBtn.classList.add('fade'); // fade out button
     };
-    document.getElementById('close-sidebar').onclick = () => {
-      document.getElementById('sidebar').classList.remove('open');
+    closeBtn.onclick = () => {
+      sidebar.classList.remove('open');
+      openBtn.classList.remove('fade'); // fade button back in
     };
   </script>
 
@@ -282,3 +293,4 @@
   </script>
 </body>
 </html>
+
