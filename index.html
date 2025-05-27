@@ -43,49 +43,35 @@
     input, button {
       padding: 0.5rem;
       font-size: 1rem;
-      margin: 0.25rem 0;
-      border-radius: 4px;
-      border: none;
     }
-    input {
-      width: 100%;
-      box-sizing: border-box;
-    }
-    button {
-      background: #ff69b4;
-      color: white;
-      cursor: pointer;
-      width: 100%;
-    }
-    #login-form {
+    #login-section {
       max-width: 300px;
       margin: 2rem auto;
       background: #222;
       padding: 1rem;
-      border-radius: 12px;
+      border-radius: 10px;
+      display: none;
+    }
+    #login-section input {
+      width: 100%;
+      margin-bottom: 0.5rem;
     }
   </style>
-
-  <!-- Firebase scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
 </head>
 <body>
 
-  <!-- Login Form -->
-  <div id="login-form">
-    <h2 style="text-align:center; margin-bottom: 1rem;">Login</h2>
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button onclick="login()">Log In</button>
-    <p style="color:#888; font-size: 0.8rem; margin-top: 1rem; text-align:center;">
-      Use the email/password you registered in Firebase Authentication.
-    </p>
+  <!-- Login form -->
+  <div id="login-section">
+    <h2>Login to Andrew’s Dashboard</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="login-btn">Login</button>
+    <button id="logout-btn" style="display:none;">Logout</button>
+    <div id="login-message" style="color:#f66; margin-top:0.5rem;"></div>
   </div>
 
-  <!-- Dashboard Content (hidden until login) -->
-  <div id="dashboard-content" style="display:none; max-width: 600px; margin: auto;">
+  <!-- Dashboard -->
+  <div id="dashboard" style="display:none;">
     <h1>Welcome, Andrew 🖤</h1>
 
     <div class="section">
@@ -111,74 +97,25 @@
       <input id="user-input" placeholder="Type to your dom..." />
       <button onclick="sendMessage()">Send</button>
     </div>
-
-    <button onclick="logout()" style="margin-top: 1rem; background:#800040;">Logout</button>
   </div>
 
   <script>
-    // Firebase config + init
-    const firebaseConfig = {
-      apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
-      authDomain: "andrewdashboardauth.firebaseapp.com",
-      projectId: "andrewdashboardauth",
-      storageBucket: "andrewdashboardauth.firebasestorage.app",
-      messagingSenderId: "165854560081",
-      appId: "1:165854560081:web:804b9490c6116a3b025d70",
-      measurementId: "G-1PKMZBEFTX"
-    };
-    firebase.initializeApp(firebaseConfig);
-    firebase.analytics();
-    const auth = firebase.auth();
-
-    // Login function
-    function login() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      if (!email || !password) {
-        alert("Please enter email and password.");
-        return;
-      }
-      auth.signInWithEmailAndPassword(email, password)
-        .then(userCredential => {
-          alert("Welcome " + userCredential.user.email);
-        })
-        .catch(error => {
-          alert("Login failed: " + error.message);
-        });
+    // Placeholder messages & debt
+    function updateDashboard() {
+      document.getElementById('debt-amount').textContent = "$124.80";
+      const messages = [
+        "You're only useful on your knees, aren't you, puppy?",
+        "Every breath you take is mine. Every edge? My control.",
+        "You don’t even think anymore. Just obey, dumb muscle toy.",
+      ];
+      const msg = messages[Math.floor(Math.random() * messages.length)];
+      document.getElementById("daily-message").textContent = msg;
     }
 
-    // Logout function
-    function logout() {
-      auth.signOut();
-    }
-
-    // Show/hide login & dashboard based on auth state
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('dashboard-content').style.display = 'block';
-
-        // Load your dashboard data here:
-        document.getElementById('debt-amount').textContent = "$124.80";
-
-        const messages = [
-          "You're only useful on your knees, aren't you, puppy?",
-          "Every breath you take is mine. Every edge? My control.",
-          "You don’t even think anymore. Just obey, dumb muscle toy.",
-        ];
-        const msg = messages[Math.floor(Math.random() * messages.length)];
-        document.getElementById("daily-message").textContent = msg;
-      } else {
-        document.getElementById('login-form').style.display = 'block';
-        document.getElementById('dashboard-content').style.display = 'none';
-      }
-    });
-
-    // Chat placeholder:
     function sendMessage() {
       const input = document.getElementById('user-input');
       const log = document.getElementById('chat-log');
-      const userMsg = input.value.trim();
+      const userMsg = input.value;
       if (!userMsg) return;
       log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
       input.value = '';
@@ -189,5 +126,59 @@
     }
   </script>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAP70AYmxGv4gG92Eq4ngHuUPJjDHP1RRE",
+      authDomain: "andrewdashboardauth.firebaseapp.com",
+      projectId: "andrewdashboardauth",
+      storageBucket: "andrewdashboardauth.firebasestorage.app",
+      messagingSenderId: "165854560081",
+      appId: "1:165854560081:web:804b9490c6116a3b025d70",
+      measurementId: "G-1PKMZBEFTX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    getAnalytics(app);
+    const auth = getAuth(app);
+
+    const loginSection = document.getElementById('login-section');
+    const dashboard = document.getElementById('dashboard');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loginMessage = document.getElementById('login-message');
+
+    loginBtn.onclick = () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      loginMessage.textContent = '';
+      signInWithEmailAndPassword(auth, email, password)
+        .catch((error) => {
+          loginMessage.textContent = error.message;
+        });
+    };
+
+    logoutBtn.onclick = () => {
+      signOut(auth);
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User logged in
+        loginSection.style.display = 'none';
+        dashboard.style.display = 'block';
+        logoutBtn.style.display = 'inline-block';
+        updateDashboard();
+      } else {
+        // No user logged in
+        loginSection.style.display = 'block';
+        dashboard.style.display = 'none';
+        logoutBtn.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
