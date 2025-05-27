@@ -26,6 +26,12 @@
       font-weight: bold;
       color: #aaa;
     }
+    input, button, select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
     #chatbox {
       border-top: 1px solid #444;
       padding-top: 1rem;
@@ -40,10 +46,6 @@
       border-radius: 8px;
     }
     .chatlog div { margin: 0.5rem 0; }
-    input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
     #login-section {
       max-width: 300px;
       margin: 2rem auto;
@@ -56,7 +58,10 @@
       width: 100%;
       margin-bottom: 0.5rem;
     }
-
+    #login-message {
+      color: #f66;
+      margin-top: 0.5rem;
+    }
     #sidebar {
       position: fixed;
       top: 0;
@@ -95,25 +100,19 @@
       text-decoration: none;
       cursor: pointer;
     }
-
     #open-sidebar {
       position: fixed;
       top: 1rem;
       left: 1rem;
-      width: 40px;
-      height: 40px;
+      font-size: 1.5rem;
       background: #ff69b4;
       color: #111;
       border: none;
+      padding: 0.5rem;
       border-radius: 6px;
-      font-size: 1.5rem;
-      line-height: 40px;
-      text-align: center;
       z-index: 1001;
       cursor: pointer;
-      display: none;
     }
-
     #close-sidebar {
       background: none;
       color: #fff;
@@ -124,234 +123,162 @@
       right: 15px;
       cursor: pointer;
     }
-
-    #login-message {
-      color: #f66;
-      margin-top: 0.5rem;
-    }
-
-    /* Settings Modal */
-    #settings-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 90%;
-      max-width: 400px;
-      background: #222;
-      border-radius: 12px;
-      padding: 1.5rem 2rem 2rem 2rem;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 15px #ff69b4aa;
-      z-index: 2000;
-      display: none;
-      color: #eee;
-    }
-
-    #settings-modal label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-      color: #ff69b4;
-    }
-
-    #settings-modal input[type="text"],
-    #settings-modal input[type="password"] {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.3rem;
-      background: #111;
-      border: 1px solid #444;
-      border-radius: 6px;
-      color: #eee;
-      font-size: 1rem;
-    }
-
-    #settings-modal button#save-settings {
-      margin-top: 1.5rem;
-      width: 100%;
-      background: #ff69b4;
-      color: #111;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      padding: 0.75rem;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: background-color 0.3s ease;
-    }
-    #settings-modal button#save-settings:hover {
-      background-color: #ff85c1;
-    }
-
-    /* New close button for settings */
-    #settings-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 30px;
-      height: 30px;
-      background-color: #ff69b4;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1.5rem;
-      line-height: 30px;
-      color: #111;
-      text-align: center;
-      font-weight: bold;
-      user-select: none;
-    }
-
-    #settings-close::before {
-      content: "×";
-      display: block;
-      margin-top: -2px;
-    }
-    #settings-close:hover {
-      background-color: #ff85c1;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <div id="sidebar">
-    <button id="close-sidebar">&times;</button>
-    <h2>Menu</h2>
-    <ul>
-      <li><a onclick="showDashboard()">Dashboard</a></li>
-      <li><a onclick="showSettings()">Settings</a></li>
-      <li><a href="#">Submit Debt</a></li>
-      <li><a onclick="logout()">Logout</a></li>
-    </ul>
-  </div>
-  <button id="open-sidebar">&#9776;</button>
+<!-- Sidebar -->
+<div id="sidebar">
+  <button id="close-sidebar">&times;</button>
+  <h2>Menu</h2>
+  <ul>
+    <li><a onclick="showDashboard()">Dashboard</a></li>
+    <li><a onclick="showSettings()">Settings</a></li>
+    <li><a href="#">Submit Debt</a></li>
+    <li><a onclick="logout()">Logout</a></li>
+  </ul>
+</div>
+<button id="open-sidebar" style="display:none;">&#9776;</button>
 
-  <!-- Login -->
-  <div id="login-section">
-    <h2>Login to Fag Hub</h2>
-    <input id="email" type="text" placeholder="Username" />
-    <input id="password" type="password" placeholder="Password" />
-    <button id="login-btn">Login</button>
-    <div id="login-message"></div>
-  </div>
+<!-- Login -->
+<div id="login-section">
+  <h2>Login to Fag Hub</h2>
+  <input id="email" type="text" placeholder="Username" />
+  <input id="password" type="password" placeholder="Password" />
+  <button id="login-btn">Login</button>
+  <div id="login-message"></div>
+</div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" style="display:none;">
-    <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
+<!-- Dashboard -->
+<div id="dashboard" style="display:none;">
+  <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
 
-    <div class="section">
-      <div class="label">Debt Price:</div>
-      <div id="debt-amount">$124.80</div>
-    </div>
-
-    <div class="section">
-      <div class="label">Daily Message:</div>
-      <div id="daily-message"><em>—loading—</em></div>
-    </div>
-
-    <div class="section">
-      <div class="label">Profile:</div>
-      <p><strong>Name:</strong> <span id="profile-name">User</span></p>
-      <p><strong>Nicknames:</strong> <span id="profile-nicknames">puppy, f@g</span></p>
-      <p><strong>Fetishes:</strong> <span id="profile-fetishes">Edging, mind control, gooning, muscle worship, manipulation…</span></p>
-    </div>
-
-    <div class="section" id="chatbox">
-      <div class="label">Dom AI Chat:</div>
-      <div class="chatlog" id="chat-log"></div>
-      <input id="user-input" placeholder="Type to your dom..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
+  <div class="section">
+    <div class="label">Debt Price:</div>
+    <div id="debt-amount">$124.80</div>
   </div>
 
-  <!-- Settings Modal -->
-  <div id="settings-modal" aria-modal="true" role="dialog" aria-labelledby="settings-title" aria-describedby="settings-desc">
-    <button id="settings-close" title="Close settings"></button>
-    <h2 id="settings-title">Settings</h2>
-
-    <label for="name-input">Name</label>
-    <input id="name-input" type="text" />
-
-    <label for="nicknames-input">Nicknames (comma separated)</label>
-    <input id="nicknames-input" type="text" />
-
-    <label for="fetishes-input">Fetishes (comma separated)</label>
-    <input id="fetishes-input" type="text" />
-
-    <label for="currentPassword">Current Password</label>
-    <input id="currentPassword" type="password" placeholder="Leave blank if not changing" />
-
-    <label for="newPassword">New Password</label>
-    <input id="newPassword" type="password" placeholder="Leave blank if not changing" />
-
-    <label for="confirmNewPassword">Confirm New Password</label>
-    <input id="confirmNewPassword" type="password" placeholder="Leave blank if not changing" />
-
-    <div id="password-change-status" style="color:#6f6; margin-top: 0.5rem;"></div>
-
-    <button id="save-settings">Save Settings</button>
+  <div class="section">
+    <div class="label">Daily Message:</div>
+    <div id="daily-message"><em>—loading—</em></div>
   </div>
+
+  <div class="section">
+    <div class="label">Profile:</div>
+    <p><strong>Name:</strong> <span id="profile-name">User</span></p>
+    <p><strong>Nicknames:</strong> <span id="profile-nicknames">puppy, f@g</span></p>
+    <p><strong>Fetishes:</strong> <span id="profile-fetishes">Edging, mind control, gooning, muscle worship, manipulation…</span></p>
+  </div>
+
+  <div class="section" id="chatbox">
+    <div class="label">Dom AI Chat:</div>
+    <div class="chatlog" id="chat-log"></div>
+    <input id="user-input" placeholder="Type to your dom..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <!-- Dom Control Panel -->
+  <div id="manage-sub" class="section" style="display:none;">
+    <h2 style="color:#ff69b4;">Manage Sub</h2>
+    <label for="sub-selector" class="label">Select Sub:</label>
+    <select id="sub-selector">
+      <option value="Andrew">Andrew</option>
+    </select>
+
+    <label class="label">Nicknames:</label>
+    <input id="edit-nicknames" type="text" placeholder="e.g. puppy, f@g" />
+
+    <label class="label">Fetishes:</label>
+    <input id="edit-fetishes" type="text" placeholder="e.g. edging, gooning..." />
+
+    <label class="label">Reset Password:</label>
+    <input id="edit-password" type="password" placeholder="New password" />
+
+    <button onclick="saveSubSettings()" style="background:#ff69b4; color:#111; border:none; border-radius:6px;">
+      Save Changes
+    </button>
+  </div>
+</div>
 
 <script>
-  // Hardcoded users list with extra profile info
   const users = [
     {
       username: "Alpha Dylan",
       password: "Ohana2311!",
       name: "Alpha Dylan",
-      nicknames: "Alpha, Boss",
-      fetishes: "Domination, control"
+      isDom: true
     },
     {
       username: "Andrew",
       password: "Puppy",
       name: "Andrew",
       nicknames: "puppy, f@g",
-      fetishes: "Edging, mind control, gooning, muscle worship, manipulation…"
+      fetishes: "Edging, mind control, gooning, muscle worship, manipulation…",
+      isDom: false
     }
   ];
-
-  // Elements
-  const sidebar = document.getElementById('sidebar');
-  const openSidebarBtn = document.getElementById('open-sidebar');
-  const closeSidebarBtn = document.getElementById('close-sidebar');
-  const loginSection = document.getElementById('login-section');
-  const dashboard = document.getElementById('dashboard');
-  const loginMessage = document.getElementById('login-message');
-  const settingsModal = document.getElementById('settings-modal');
-  const settingsCloseBtn = document.getElementById('settings-close');
-  const saveSettingsBtn = document.getElementById('save-settings');
 
   let loggedInUser = null;
 
   function updateDashboard(name, nicknames, fetishes) {
     document.getElementById('display-name').textContent = name;
     document.getElementById('profile-name').textContent = name;
-    document.getElementById('profile-nicknames').textContent = nicknames;
-    document.getElementById('profile-fetishes').textContent = fetishes;
+    document.getElementById('profile-nicknames').textContent = nicknames || '';
+    document.getElementById('profile-fetishes').textContent = fetishes || '';
+    document.getElementById('daily-message').textContent = getRandomMessage();
+  }
 
+  function getRandomMessage() {
     const messages = [
       "You're only useful on your knees, aren't you, puppy?",
       "Every breath you take is mine. Every edge? My control.",
       "You don’t even think anymore. Just obey, dumb muscle toy."
     ];
-    document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
+    return messages[Math.floor(Math.random() * messages.length)];
   }
 
   function showDashboard() {
-    loginSection.style.display = 'none';
-    dashboard.style.display = 'block';
-    openSidebarBtn.style.display = 'block';
-    sidebar.classList.remove('open');
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('open-sidebar').style.display = 'block';
+    document.getElementById('sidebar').classList.remove('open');
   }
 
-  function showLogin() {
-    loginSection.style.display = 'block';
-    dashboard.style.display = 'none';
-    openSidebarBtn.style.display = 'none';
-    sidebar.classList.remove('open');
-    loginMessage.textContent = '';
+  function logout() {
+    document.getElementById('login-section').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('open-sidebar').style.display = 'none';
+    document.getElementById('manage-sub').style.display = 'none';
+    document.getElementById('login-message').textContent = '';
+  }
+
+  function showSettings() {
+    alert("Settings page coming soon.");
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('user-input');
+    const log = document.getElementById('chat-log');
+    const userMsg = input.value.trim();
+    if (!userMsg) return;
+    log.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
+    input.value = '';
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function saveSubSettings() {
+    const subName = document.getElementById('sub-selector').value;
+    const nick = document.getElementById('edit-nicknames').value.trim();
+    const fet = document.getElementById('edit-fetishes').value.trim();
+    const pass = document.getElementById('edit-password').value.trim();
+    const target = users.find(u => u.username === subName);
+    if (target) {
+      if (nick) target.nicknames = nick;
+      if (fet) target.fetishes = fet;
+      if (pass) target.password = pass;
+      updateDashboard(target.name, target.nicknames, target.fetishes);
+      alert("Sub settings updated.");
+    }
   }
 
   document.getElementById('login-btn').addEventListener('click', () => {
@@ -361,118 +288,23 @@
 
     if (user) {
       loggedInUser = user;
-      updateDashboard(user.name, user.nicknames, user.fetishes);
       showDashboard();
+      const target = user.isDom ? users.find(u => u.username === "Andrew") : user;
+      updateDashboard(target.name, target.nicknames, target.fetishes);
+      if (user.isDom) document.getElementById('manage-sub').style.display = 'block';
     } else {
-      loginMessage.textContent = "Invalid username or password.";
+      document.getElementById('login-message').textContent = "Invalid username or password.";
     }
   });
 
-  openSidebarBtn.onclick = () => {
-    sidebar.classList.add('open');
-    openSidebarBtn.style.display = 'none';
+  document.getElementById('open-sidebar').onclick = () => {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('open-sidebar').style.display = 'none';
   };
-
-  closeSidebarBtn.onclick = () => {
-    sidebar.classList.remove('open');
-    openSidebarBtn.style.display = 'block';
+  document.getElementById('close-sidebar').onclick = () => {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('open-sidebar').style.display = 'block';
   };
-
-  function logout() {
-    loggedInUser = null;
-    showLogin();
-  }
-
-  function showSettings() {
-    if (!loggedInUser) return;
-    document.getElementById('name-input').value = loggedInUser.name;
-    document.getElementById('nicknames-input').value = loggedInUser.nicknames;
-    document.getElementById('fetishes-input').value = loggedInUser.fetishes;
-    document.getElementById('currentPassword').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('confirmNewPassword').value = '';
-    document.getElementById('password-change-status').textContent = '';
-
-    settingsModal.style.display = 'block';
-    sidebar.classList.remove('open');
-    openSidebarBtn.style.display = 'block';
-  }
-
-  function hideSettings() {
-    settingsModal.style.display = 'none';
-  }
-
-  // Settings modal close button
-  settingsCloseBtn.onclick = hideSettings;
-
-  // Save settings button
-  saveSettingsBtn.onclick = () => {
-    if (!loggedInUser) return;
-
-    const newName = document.getElementById('name-input').value.trim();
-    const newNicknames = document.getElementById('nicknames-input').value.trim();
-    const newFetishes = document.getElementById('fetishes-input').value.trim();
-
-    const currentPass = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value;
-    const confirmPass = document.getElementById('confirmNewPassword').value;
-
-    // Validate passwords if changing
-    if (currentPass || newPass || confirmPass) {
-      if (currentPass !== loggedInUser.password) {
-        alert("Current password is incorrect.");
-        return;
-      }
-      if (newPass !== confirmPass) {
-        alert("New passwords do not match.");
-        return;
-      }
-      if (newPass.length < 4) {
-        alert("New password must be at least 4 characters.");
-        return;
-      }
-      loggedInUser.password = newPass;
-      document.getElementById('password-change-status').textContent = "Password changed successfully!";
-    } else {
-      document.getElementById('password-change-status').textContent = "";
-    }
-
-    loggedInUser.name = newName || loggedInUser.name;
-    loggedInUser.nicknames = newNicknames || loggedInUser.nicknames;
-    loggedInUser.fetishes = newFetishes || loggedInUser.fetishes;
-
-    updateDashboard(loggedInUser.name, loggedInUser.nicknames, loggedInUser.fetishes);
-
-    hideSettings();
-  };
-
-  // Simple Dom AI chatbox placeholder
-  function sendMessage() {
-    const input = document.getElementById('user-input');
-    const chatLog = document.getElementById('chat-log');
-    const msg = input.value.trim();
-    if (!msg) return;
-    const userMsg = document.createElement('div');
-    userMsg.textContent = "You: " + msg;
-    chatLog.appendChild(userMsg);
-    input.value = '';
-
-    // Fake dom AI reply after short delay
-    setTimeout(() => {
-      const domReplies = [
-        "Good boy.",
-        "That’s enough for now.",
-        "Obey me.",
-        "You like that, don’t you?",
-        "Say thank you, slave."
-      ];
-      const reply = document.createElement('div');
-      reply.textContent = "Dom AI: " + domReplies[Math.floor(Math.random() * domReplies.length)];
-      chatLog.appendChild(reply);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }, 1000);
-  }
 </script>
-
 </body>
 </html>
