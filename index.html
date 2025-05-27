@@ -40,15 +40,9 @@
       border-radius: 8px;
     }
     .chatlog div { margin: 0.5rem 0; }
-    input, button, textarea {
+    input, button {
       padding: 0.5rem;
       font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: #222;
-      color: #eee;
-      width: 100%;
-      box-sizing: border-box;
     }
     #login-section {
       max-width: 300px;
@@ -59,6 +53,7 @@
       display: block;
     }
     #login-section input {
+      width: 100%;
       margin-bottom: 0.5rem;
     }
 
@@ -105,15 +100,19 @@
       position: fixed;
       top: 1rem;
       left: 1rem;
+      width: 40px;
+      height: 40px;
       font-size: 1.5rem;
       background: #ff69b4;
       color: #111;
       border: none;
-      padding: 0.5rem 1rem;
       border-radius: 6px;
       z-index: 1001;
-      transition: opacity 0.3s ease;
       cursor: pointer;
+      display: block; /* visible by default */
+      line-height: 1;
+      text-align: center;
+      padding: 0;
     }
 
     #close-sidebar {
@@ -132,77 +131,67 @@
       margin-top: 0.5rem;
     }
 
-    /* Settings Modal */
+    /* Settings modal styles */
     #settings-modal {
-      display: none;
       position: fixed;
-      z-index: 2000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
-    }
-    #settings-modal.open {
-      display: block;
-    }
-    #settings-content {
-      background: #222;
-      margin: 3rem auto;
-      padding: 2rem;
-      border-radius: 12px;
+      top: 50%;
+      left: 50%;
+      width: 90%;
       max-width: 400px;
-      color: #eee;
-      position: relative;
-      box-shadow: 0 0 10px #ff69b4;
+      max-height: 80%;
+      overflow-y: auto;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 12px;
+      transform: translate(-50%, -50%);
+      z-index: 1100;
+      padding: 1rem 2rem 2rem;
+      display: none;
+      box-shadow: 0 0 15px #ff69b4;
     }
-    #settings-content h2 {
+    #settings-modal h2 {
+      color: #ff69b4;
       margin-top: 0;
-      color: #ff69b4;
-      margin-bottom: 1rem;
     }
-    #settings-content label {
+    #settings-modal label {
       display: block;
-      margin: 0.75rem 0 0.25rem;
+      margin: 1rem 0 0.3rem;
       font-weight: bold;
-      color: #ff69b4;
+      color: #ccc;
     }
-    #settings-content textarea {
+    #settings-modal input, #settings-modal textarea {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #111;
+      color: #eee;
+      font-size: 1rem;
       resize: vertical;
+    }
+    #settings-modal button {
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.2rem;
+      background: #ff69b4;
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
     }
     #settings-close {
       position: absolute;
-      top: 12px;
-      right: 16px;
-      font-size: 2rem;
+      top: 5px;
+      right: 10px;
+      font-size: 1.6rem;
       color: #ff69b4;
       background: none;
       border: none;
       cursor: pointer;
-      line-height: 1;
     }
-    #settings-status {
-      margin-top: 0.8rem;
-      color: #ff69b4;
-      min-height: 1.2em;
+    #passwordChangeStatus {
+      margin-top: 0.6rem;
       font-weight: bold;
-    }
-    #settings-save {
-      margin-top: 1rem;
-      background: #ff69b4;
-      border: none;
-      color: #111;
-      cursor: pointer;
-      font-weight: bold;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      width: 100%;
-      transition: background-color 0.3s ease;
-    }
-    #settings-save:hover {
-      background: #ff4c9d;
     }
   </style>
 </head>
@@ -214,12 +203,12 @@
     <h2>Menu</h2>
     <ul>
       <li><a onclick="showDashboard()">Dashboard</a></li>
-      <li><a onclick="openSettings()">Settings</a></li>
+      <li><a onclick="showSettings()">Settings</a></li>
       <li><a href="#">Submit Debt</a></li>
       <li><a onclick="logout()">Logout</a></li>
     </ul>
   </div>
-  <button id="open-sidebar" style="display:none;">&#9776;</button>
+  <button id="open-sidebar">&#9776;</button>
 
   <!-- Login -->
   <div id="login-section">
@@ -261,101 +250,61 @@
 
   <!-- Settings Modal -->
   <div id="settings-modal">
-    <div id="settings-content">
-      <button id="settings-close" title="Close settings">&times;</button>
-      <h2>Settings</h2>
-      <form id="settings-form">
-        <label for="displayName">Name</label>
-        <input id="displayName" type="text" maxlength="30" required />
+    <button id="settings-close">&times;</button>
+    <h2>Settings</h2>
 
-        <label for="nicknames">Nicknames (comma separated)</label>
-        <input id="nicknames" type="text" maxlength="100" />
+    <label for="nameInput">Name:</label>
+    <input id="nameInput" type="text" />
 
-        <label for="fetishes">Fetishes (comma separated)</label>
-        <textarea id="fetishes" rows="3" maxlength="200"></textarea>
+    <label for="nicknamesInput">Nicknames (comma separated):</label>
+    <input id="nicknamesInput" type="text" />
 
-        <label for="notes">Notes</label>
-        <textarea id="notes" rows="3" maxlength="200"></textarea>
+    <label for="fetishesInput">Fetishes (comma separated):</label>
+    <input id="fetishesInput" type="text" />
 
-        <hr style="border-color:#444;margin:1rem 0" />
+    <label for="notesInput">Notes:</label>
+    <textarea id="notesInput" rows="3" placeholder="Any extra notes..."></textarea>
 
-        <label for="currentPassword">Current Password</label>
-        <input id="currentPassword" type="password" />
+    <h3 style="margin-top:1.5rem; color:#ff69b4;">Change Password</h3>
 
-        <label for="newPassword">New Password</label>
-        <input id="newPassword" type="password" />
+    <label for="currentPassword">Current Password:</label>
+    <input id="currentPassword" type="password" />
 
-        <label for="confirmNewPassword">Confirm New Password</label>
-        <input id="confirmNewPassword" type="password" />
+    <label for="newPassword">New Password:</label>
+    <input id="newPassword" type="password" />
 
-        <button type="button" id="change-password-btn" style="margin-top:1rem; background:#ff69b4; color:#111; font-weight:bold; border:none; border-radius:6px; padding:0.5rem 1rem; cursor:pointer;">Change Password</button>
+    <label for="confirmNewPassword">Confirm New Password:</label>
+    <input id="confirmNewPassword" type="password" />
 
-        <div id="password-change-status" style="margin-top:0.5rem; min-height:1.2em; color:#ff69b4;"></div>
+    <button id="passwordChangeBtn">Change Password</button>
+    <div id="passwordChangeStatus"></div>
 
-        <button type="submit" id="settings-save">Save Settings</button>
-        <div id="settings-status"></div>
-      </form>
-    </div>
+    <button id="saveSettingsBtn">Save Settings</button>
   </div>
 
 <script>
   // Hardcoded users list
   const users = [
-    { username: "Alpha Dylan", password: "Ohana2311!", nicknames: "puppy, f@g", fetishes: "Edging, mind control, gooning, muscle worship, manipulation…" },
-    { username: "Andrew", password: "Puppy", nicknames: "puppy, f@g", fetishes: "Edging, mind control, gooning, muscle worship, manipulation…" }
+    { username: "Alpha Dylan", password: "Ohana2311!" },
+    { username: "Andrew", password: "Puppy" }
   ];
 
-  let loggedInUser = null;
-
-  // Elements
   const sidebar = document.getElementById('sidebar');
   const openSidebarBtn = document.getElementById('open-sidebar');
   const loginSection = document.getElementById('login-section');
   const dashboard = document.getElementById('dashboard');
   const loginMessage = document.getElementById('login-message');
-
   const settingsModal = document.getElementById('settings-modal');
   const settingsCloseBtn = document.getElementById('settings-close');
-  const settingsForm = document.getElementById('settings-form');
-  const settingsStatus = document.getElementById('settings-status');
-  const passwordChangeBtn = document.getElementById('change-password-btn');
-  const passwordChangeStatus = document.getElementById('password-change-status');
 
-  // Dashboard profile elements
-  const displayNameEl = document.getElementById('display-name');
-  const profileNameEl = document.getElementById('profile-name');
-  const profileNicknamesEl = document.getElementById('profile-nicknames');
-  const profileFetishesEl = document.getElementById('profile-fetishes');
+  // Keep track of logged in user object
+  let loggedInUser = null;
 
-  // Login handler
-  document.getElementById('login-btn').addEventListener('click', () => {
-    const usernameInput = document.getElementById('email').value.trim();
-    const passwordInput = document.getElementById('password').value;
-    const user = users.find(u => u.username === usernameInput && u.password === passwordInput);
-
-    if (user) {
-      loggedInUser = user;
-      loadUserSettings();
-      updateDashboard(user.username);
-      showDashboard();
-    } else {
-      loginMessage.textContent = "Invalid username or password.";
-    }
-  });
-
-  // Update dashboard profile & daily message
-  function updateDashboard(name) {
-    displayNameEl.textContent = name;
-    profileNameEl.textContent = name;
-
-    // Load from localStorage or fallback to user object
-    const nicknames = localStorage.getItem('nicknames') || (loggedInUser ? loggedInUser.nicknames : "puppy, f@g");
-    const fetishes = localStorage.getItem('fetishes') || (loggedInUser ? loggedInUser.fetishes : "Edging, mind control, gooning, muscle worship, manipulation…");
-
-    profileNicknamesEl.textContent = nicknames;
-    profileFetishesEl.textContent = fetishes;
-
-    // Daily message randomizer
+  function updateDashboard(name, nicknames, fetishes) {
+    document.getElementById('display-name').textContent = name;
+    document.getElementById('profile-name').textContent = name;
+    document.getElementById('profile-nicknames').textContent = nicknames;
+    document.getElementById('profile-fetishes').textContent = fetishes;
     const messages = [
       "You're only useful on your knees, aren't you, puppy?",
       "Every breath you take is mine. Every edge? My control.",
@@ -364,104 +313,104 @@
     document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
   }
 
-  // Show dashboard and hide login
   function showDashboard() {
     loginSection.style.display = 'none';
     dashboard.style.display = 'block';
     openSidebarBtn.style.display = 'block';
     sidebar.classList.remove('open');
-    loginMessage.textContent = '';
+    settingsModal.style.display = 'none';
   }
 
-  // Show login and hide dashboard
   function showLogin() {
     loginSection.style.display = 'block';
     dashboard.style.display = 'none';
     openSidebarBtn.style.display = 'none';
     sidebar.classList.remove('open');
     loginMessage.textContent = '';
+    settingsModal.style.display = 'none';
     loggedInUser = null;
-    localStorage.clear();
   }
 
-  // Sidebar open/close
+  function showSettings() {
+    if (!loggedInUser) {
+      alert("You must be logged in to access settings.");
+      return;
+    }
+    // Pre-fill inputs with current values
+    document.getElementById('nameInput').value = loggedInUser.name || loggedInUser.username;
+    document.getElementById('nicknamesInput').value = loggedInUser.nicknames || "puppy, f@g";
+    document.getElementById('fetishesInput').value = loggedInUser.fetishes || "Edging, mind control, gooning, muscle worship, manipulation…";
+    document.getElementById('notesInput').value = loggedInUser.notes || "";
+
+    document.getElementById('passwordChangeStatus').textContent = "";
+
+    settingsModal.style.display = 'block';
+  }
+
+  // Login button handler
+  document.getElementById('login-btn').addEventListener('click', () => {
+    const usernameInput = document.getElementById('email').value.trim();
+    const passwordInput = document.getElementById('password').value;
+    const user = users.find(u => u.username === usernameInput && u.password === passwordInput);
+
+    if (user) {
+      loggedInUser = user;
+      // Set default values if not present
+      if (!loggedInUser.name) loggedInUser.name = loggedInUser.username;
+      if (!loggedInUser.nicknames) loggedInUser.nicknames = "puppy, f@g";
+      if (!loggedInUser.fetishes) loggedInUser.fetishes = "Edging, mind control, gooning, muscle worship, manipulation…";
+      if (!loggedInUser.notes) loggedInUser.notes = "";
+
+      updateDashboard(loggedInUser.name, loggedInUser.nicknames, loggedInUser.fetishes);
+      showDashboard();
+    } else {
+      loginMessage.textContent = "Invalid username or password.";
+    }
+  });
+
   openSidebarBtn.onclick = () => {
     sidebar.classList.add('open');
-  };
-  document.getElementById('close-sidebar').onclick = () => {
-    sidebar.classList.remove('open');
+    openSidebarBtn.style.display = 'none';  // hide open button
   };
 
-  // Logout
+  document.getElementById('close-sidebar').onclick = () => {
+    sidebar.classList.remove('open');
+    openSidebarBtn.style.display = 'block'; // show open button
+  };
+
   function logout() {
     showLogin();
   }
 
-  // Settings modal open/close
-  function openSettings() {
-    if (!loggedInUser) return;
-    loadUserSettings();
-    settingsModal.classList.add('open');
-    sidebar.classList.remove('open');
-  }
-
+  // Settings close button
   settingsCloseBtn.onclick = () => {
-    settingsModal.classList.remove('open');
-    clearSettingsStatus();
+    settingsModal.style.display = 'none';
   };
 
-  window.onclick = (e) => {
-    if (e.target === settingsModal) {
-      settingsModal.classList.remove('open');
-      clearSettingsStatus();
-    }
-  };
+  // Save settings button handler
+  document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+    if (!loggedInUser) return;
 
-  // Load user settings from localStorage or fallback to loggedInUser
-  function loadUserSettings() {
-    document.getElementById('displayName').value = localStorage.getItem('displayName') || (loggedInUser ? loggedInUser.username : "");
-    document.getElementById('nicknames').value = localStorage.getItem('nicknames') || (loggedInUser ? loggedInUser.nicknames : "");
-    document.getElementById('fetishes').value = localStorage.getItem('fetishes') || (loggedInUser ? loggedInUser.fetishes : "");
-    document.getElementById('notes').value = localStorage.getItem('notes') || "";
-    passwordChangeStatus.textContent = '';
-  }
+    const newName = document.getElementById('nameInput').value.trim() || loggedInUser.username;
+    const newNicknames = document.getElementById('nicknamesInput').value.trim() || "";
+    const newFetishes = document.getElementById('fetishesInput').value.trim() || "";
+    const newNotes = document.getElementById('notesInput').value.trim();
 
-  // Save settings form
-  settingsForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newName = document.getElementById('displayName').value.trim();
-    const newNicknames = document.getElementById('nicknames').value.trim();
-    const newFetishes = document.getElementById('fetishes').value.trim();
-    const newNotes = document.getElementById('notes').value.trim();
+    loggedInUser.name = newName;
+    loggedInUser.nicknames = newNicknames;
+    loggedInUser.fetishes = newFetishes;
+    loggedInUser.notes = newNotes;
 
-    if (!newName) {
-      settingsStatus.textContent = "Name cannot be empty.";
-      return;
-    }
+    updateDashboard(newName, newNicknames, newFetishes);
 
-    localStorage.setItem('displayName', newName);
-    localStorage.setItem('nicknames', newNicknames);
-    localStorage.setItem('fetishes', newFetishes);
-    localStorage.setItem('notes', newNotes);
-
-    settingsStatus.style.color = '#ff69b4';
-    settingsStatus.textContent = "Profile saved!";
-
-    // Update dashboard immediately
-    updateDashboard(newName);
-
-    setTimeout(() => {
-      settingsStatus.textContent = "";
-    }, 3000);
+    alert("Settings saved.");
+    settingsModal.style.display = 'none';
   });
 
-  // Clear status messages
-  function clearSettingsStatus() {
-    settingsStatus.textContent = "";
-    passwordChangeStatus.textContent = "";
-  }
+  // Password change button handler
+  const passwordChangeBtn = document.getElementById('passwordChangeBtn');
+  const passwordChangeStatus = document.getElementById('passwordChangeStatus');
 
-  // Change password button logic
   passwordChangeBtn.addEventListener('click', () => {
     const currentPassword = document.getElementById('currentPassword').value;
     const newPassword = document.getElementById('newPassword').value;
@@ -495,32 +444,41 @@
     passwordChangeStatus.style.color = '#90ee90';
     passwordChangeStatus.textContent = "Password changed successfully.";
 
-    // Clear password inputs
-    document.getElementById('currentPassword').value = "";
-    document.getElementById('newPassword').value = "";
-    document.getElementById('confirmNewPassword').value = "";
+    // Clear password fields
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
   });
 
-  // Chatbox dummy sendMessage
+  // Dummy chat send (no backend)
   function sendMessage() {
     const input = document.getElementById('user-input');
     const chatLog = document.getElementById('chat-log');
-    const text = input.value.trim();
-    if (!text) return;
-    const userMsg = document.createElement('div');
-    userMsg.textContent = `You: ${text}`;
-    chatLog.appendChild(userMsg);
+    const msg = input.value.trim();
+    if (!msg) return;
+    const userDiv = document.createElement('div');
+    userDiv.textContent = "You: " + msg;
+    userDiv.style.color = '#ff69b4';
+    chatLog.appendChild(userDiv);
+    input.value = '';
 
-    // Dummy AI response
-    const aiMsg = document.createElement('div');
-    aiMsg.textContent = `Dom AI: I heard you say "${text}". Behave.`;
-    aiMsg.style.color = '#ff69b4';
-    chatLog.appendChild(aiMsg);
-
-    input.value = "";
-    chatLog.scrollTop = chatLog.scrollHeight;
+    // Simple dom AI response (demo)
+    setTimeout(() => {
+      const domReplies = [
+        "Good boy.",
+        "Now get on your knees.",
+        "You belong to me.",
+        "Such a pathetic toy.",
+        "Edge for me, slave."
+      ];
+      const domDiv = document.createElement('div');
+      domDiv.textContent = "Dom: " + domReplies[Math.floor(Math.random() * domReplies.length)];
+      domDiv.style.color = '#90ee90';
+      chatLog.appendChild(domDiv);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }, 1000);
   }
-
 </script>
+
 </body>
 </html>
