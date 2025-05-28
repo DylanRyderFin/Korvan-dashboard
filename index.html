@@ -1,289 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Fag Hub Dashboard</title>
-<style>
-  /* Dark theme with pink highlights */
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #121212;
-    color: #eee;
-  }
-  #login {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  #login input {
-    margin: 5px;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-  }
-  #login button {
-    background: #ff69b4;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  #app {
-    display: none;
-    height: 100vh;
-    overflow: hidden;
-  }
-  #sidebar {
-    width: 200px;
-    background: #1e1e1e;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    padding-top: 20px;
-    display: flex;
-    flex-direction: column;
-  }
-  #sidebar a {
-    color: #ff69b4;
-    padding: 15px 20px;
-    text-decoration: none;
-    cursor: pointer;
-    border-bottom: 1px solid #333;
-  }
-  #sidebar a:hover {
-    background: #ff69b4;
-    color: #121212;
-  }
-  #content {
-    margin-left: 200px;
-    padding: 20px;
-  }
-  #dashboard {
-    display: none;
-  }
-  #dailyMessage {
-    margin: 15px 0;
-    font-size: 1.2em;
-  }
-  #profile {
-    margin-top: 30px;
-    padding: 15px;
-    background: #222;
-    border-radius: 8px;
-  }
-  #chatbox {
-    margin-top: 30px;
-    background: #222;
-    border-radius: 8px;
-    padding: 10px;
-    max-width: 600px;
-  }
-  #chatMessages {
-    max-height: 150px;
-    overflow-y: auto;
-    margin-bottom: 10px;
-  }
-  #chatInput {
-    width: 80%;
-    padding: 8px;
-    border-radius: 4px;
-    border: none;
-  }
-  #sendChat {
-    padding: 8px 15px;
-    border: none;
-    background: #ff69b4;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  #settingsPopup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 300px;
-    padding: 20px;
-    background: #222;
-    border-radius: 8px;
-    transform: translate(-50%, -50%);
-    z-index: 100;
-  }
-  #settingsPopup button {
-    margin-top: 10px;
-    background: #ff69b4;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  #overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 50;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fag Hub Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+    }
+
+    .login-container, .dashboard {
+      display: none;
+      padding: 20px;
+    }
+
+    .login-container.active, .dashboard.active {
+      display: block;
+    }
+
+    .sidebar {
+      height: 100vh;
+      width: 200px;
+      position: fixed;
+      background-color: #1e1e1e;
+      padding-top: 20px;
+      display: none;
+    }
+
+    .sidebar.active {
+      display: block;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 10px 15px;
+      color: #ff69b4;
+      text-decoration: none;
+    }
+
+    .sidebar a:hover {
+      background-color: #333;
+    }
+
+    #main {
+      margin-left: 200px;
+      padding: 20px;
+    }
+
+    .message, .profile, .chatbox, .settings-popup {
+      margin-bottom: 20px;
+      background-color: #1e1e1e;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+    .chat-log {
+      max-height: 150px;
+      overflow-y: auto;
+      background-color: #2c2c2c;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .settings-popup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 30%;
+      width: 40%;
+      background-color: #1e1e1e;
+      z-index: 1000;
+      border: 1px solid #ff69b4;
+    }
+
+    .settings-popup textarea {
+      width: 100%;
+      height: 100px;
+      background-color: #2c2c2c;
+      color: white;
+      border: none;
+      padding: 10px;
+    }
+
+    .canvas-builder {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .canvas-builder.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
 
-<div id="login">
-  <h2>Login</h2>
-  <input id="usernameInput" type="text" placeholder="Username" autocomplete="off" />
-  <input id="passwordInput" type="password" placeholder="Password" autocomplete="off" />
-  <button onclick="login()">Login</button>
-  <p id="loginError" style="color:#ff6961;"></p>
-</div>
+  <div class="login-container active" id="loginContainer">
+    <h2>Login to Fag Hub</h2>
+    <input type="text" id="username" placeholder="Username"/><br/><br/>
+    <input type="password" id="password" placeholder="Password"/><br/><br/>
+    <button onclick="login()">Login</button>
+  </div>
 
-<div id="app">
-  <div id="sidebar"></div>
-  <div id="content">
-    <div id="dashboard">
-      <h1>Welcome, <span id="userDisplay"></span></h1>
-      <div>
-        <strong>Debt Price:</strong> $<span id="debtPrice"></span>
-      </div>
-      <div id="dailyMessage"></div>
+  <div class="sidebar" id="sidebar"></div>
 
-      <div id="profile">
-        <h3>Your Profile</h3>
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Role:</strong> <span id="profileRole"></span></p>
-      </div>
-
-      <div id="chatbox">
-        <h3>Dom Chat</h3>
-        <div id="chatMessages"></div>
-        <input id="chatInput" placeholder="Say something..." />
-        <button id="sendChat">Send</button>
-      </div>
+  <div id="main" class="dashboard">
+    <div class="message" id="dailyMessage"></div>
+    <div class="profile" id="profile"></div>
+    <div class="chatbox">
+      <h3>Chat</h3>
+      <div class="chat-log" id="chatLog"></div>
+      <input type="text" id="chatInput" placeholder="Say something..."/>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+    <div class="settings-popup" id="settingsPopup">
+      <h3>Edit Settings</h3>
+      <textarea id="settingsEditor"></textarea><br/>
+      <button onclick="saveSettings()">Save to Specific Account</button>
+      <button onclick="saveSettings(true)">Save to All Accounts</button>
+      <button onclick="closeSettings()">Close</button>
+    </div>
+    <div class="canvas-builder" id="builderCanvas">
+      <h3>Page Builder</h3>
+      <div id="builderArea" contenteditable="true" style="background:#2c2c2c;padding:10px;border-radius:5px;">Edit this live area...</div>
     </div>
   </div>
-</div>
 
-<div id="settingsPopup">
-  <h3>Settings</h3>
-  <p>Coming soon...</p>
-  <button onclick="closeSettings()">Close</button>
-</div>
-<div id="overlay" onclick="closeSettings()"></div>
+  <script>
+    const users = {
+      "Alpha Dylan": { password: "alphapass", debt: "$0", profile: "Alpha Master", role: "alpha" },
+      "Andrew": { password: "andrewpass", debt: "$500", profile: "Good sub", role: "sub" }
+    };
 
-<script>
-  const users = {
-    "Alpha Dylan": { password: "alpha123", debt: 0, role: "alpha" },
-    "Andrew": { password: "sub123", debt: 1500, role: "sub" }
-  };
+    let currentUser = null;
 
-  const dailyMessages = [
-    "Good morning, slave. Remember who you serve.",
-    "Your obedience pleases me. Keep going.",
-    "Debt is your leash, and I hold the key."
-  ];
+    const dailyMessages = [
+      "You exist to serve your Alpha.",
+      "Remember your place today.",
+      "Obedience is your only purpose."
+    ];
 
-  let currentUser = null;
-
-  function login() {
-    const username = document.getElementById("usernameInput").value.trim();
-    const password = document.getElementById("passwordInput").value;
-    const errorElem = document.getElementById("loginError");
-
-    if (users[username] && users[username].password === password) {
-      currentUser = username;
-      errorElem.textContent = "";
-      showApp();
-    } else {
-      errorElem.textContent = "Invalid username or password.";
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      if (users[username] && users[username].password === password) {
+        currentUser = username;
+        showDashboard();
+      } else {
+        alert("Invalid credentials.");
+      }
     }
-  }
 
-  function showApp() {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "flex";
-
-    renderSidebar();
-    showSection("dashboard");
-    loadDashboard();
-  }
-
-  function renderSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    sidebar.innerHTML = `
-      <a href="#" onclick="showSection('dashboard')">Dashboard</a>
-      <a href="#" onclick="openSettings()">Settings</a>
-      <a href="#" onclick="alert('Feature coming soon.')">Submit Debt</a>
-      ${users[currentUser].role === "alpha" ? '<a href="#" onclick="toggleBuilder()">Page Builder</a>' : ''}
-      <a href="#" onclick="logout()">Logout</a>
-    `;
-  }
-
-  function showSection(section) {
-    if (section === "dashboard") {
-      document.getElementById("dashboard").style.display = "block";
+    function showDashboard() {
+      document.getElementById("loginContainer").classList.remove("active");
+      document.querySelector(".dashboard").classList.add("active");
+      document.getElementById("sidebar").classList.add("active");
+      document.getElementById("dailyMessage").innerText = dailyMessages[Math.floor(Math.random() * dailyMessages.length)];
+      document.getElementById("profile").innerHTML = `<strong>Debt:</strong> ${users[currentUser].debt}<br/><strong>Profile:</strong> ${users[currentUser].profile}`;
+      renderSidebar();
     }
-    // No other sections implemented
-  }
 
-  function loadDashboard() {
-    document.getElementById("userDisplay").textContent = currentUser;
-    document.getElementById("debtPrice").textContent = users[currentUser].debt;
-    document.getElementById("dailyMessage").textContent = dailyMessages[Math.floor(Math.random() * dailyMessages.length)];
-    document.getElementById("profileUsername").textContent = currentUser;
-    document.getElementById("profileRole").textContent = users[currentUser].role === "alpha" ? "Dom (Alpha Dylan)" : "Sub (Andrew)";
-  }
-
-  function logout() {
-    currentUser = null;
-    document.getElementById("app").style.display = "none";
-    document.getElementById("login").style.display = "flex";
-    document.getElementById("usernameInput").value = "";
-    document.getElementById("passwordInput").value = "";
-  }
-
-  function openSettings() {
-    document.getElementById("settingsPopup").style.display = "block";
-    document.getElementById("overlay").style.display = "block";
-  }
-
-  function closeSettings() {
-    document.getElementById("settingsPopup").style.display = "none";
-    document.getElementById("overlay").style.display = "none";
-  }
-
-  // Dummy toggleBuilder to prevent errors if clicked (only for alpha)
-  function toggleBuilder() {
-    alert("Page Builder feature is coming soon.");
-  }
-
-  // Chatbox logic (simple message log)
-  const chatMessagesElem = document.getElementById("chatMessages");
-  const chatInputElem = document.getElementById("chatInput");
-  const sendChatBtn = document.getElementById("sendChat");
-
-  sendChatBtn.addEventListener("click", () => {
-    const message = chatInputElem.value.trim();
-    if (message) {
-      const msgDiv = document.createElement("div");
-      msgDiv.textContent = `${currentUser}: ${message}`;
-      chatMessagesElem.appendChild(msgDiv);
-      chatInputElem.value = "";
-      chatMessagesElem.scrollTop = chatMessagesElem.scrollHeight;
+    function renderSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.innerHTML = `
+        <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+        <a href="#" onclick="openSettings()">Settings</a>
+        <a href="#" onclick="alert('Feature coming soon.')">Submit Debt</a>
+        ${users[currentUser].role === "alpha" ? '<a href="#" onclick="toggleBuilder()">Page Builder</a>' : ''}
+        <a href="#" onclick="logout()">Logout</a>
+      `;
     }
-  });
 
-  chatInputElem.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      sendChatBtn.click();
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const log = document.getElementById("chatLog");
+      const msg = input.value.trim();
+      if (msg) {
+        const reply = users[currentUser].role === "alpha"
+          ? "Sub, your message is received."
+          : "Yes, Sir. I'll remember that.";
+        log.innerHTML += `<div><strong>You:</strong> ${msg}</div>`;
+        log.innerHTML += `<div><strong>DomBot:</strong> ${reply}</div>`;
+        input.value = "";
+        log.scrollTop = log.scrollHeight;
+      }
     }
-  });
-</script>
+
+    function openSettings() {
+      document.getElementById("settingsPopup").style.display = "block";
+      document.getElementById("settingsEditor").value = "Live editable settings for this session.";
+    }
+
+    function closeSettings() {
+      document.getElementById("settingsPopup").style.display = "none";
+    }
+
+    function saveSettings(toAll = false) {
+      alert(toAll ? "Saved to all accounts." : `Saved to ${currentUser}'s account.`);
+      closeSettings();
+    }
+
+    function toggleBuilder() {
+      const builder = document.getElementById("builderCanvas");
+      builder.classList.toggle("active");
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    function showSection(section) {
+      // Only dashboard exists currently
+    }
+  </script>
 
 </body>
 </html>
