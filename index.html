@@ -1,5 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fag Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #121212;
+      color: white;
+    }
+    .login-container, .dashboard, #pageBuilder {
+      display: none;
+    }
+    .login-container.active, .dashboard.active, #pageBuilder.active {
+      display: block;
+    }
+    .login-box {
+      max-width: 300px;
+      margin: 100px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      border: 2px solid #ff69b4;
+      border-radius: 10px;
+      text-align: center;
+    }
+    input {
+      padding: 8px;
+      margin: 5px 0;
+      width: 90%;
+    }
+    button {
+      padding: 8px 12px;
+      background: #ff69b4;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .sidebar {
+      position: fixed;
+      width: 200px;
+      height: 100%;
+      background: #1e1e1e;
+      top: 0;
+      left: 0;
+      padding-top: 20px;
+      border-right: 2px solid #ff69b4;
+    }
+    .sidebar a {
+      display: block;
+      padding: 10px;
+      color: white;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #333;
+    }
+    .main-content {
+      margin-left: 210px;
+      padding: 20px;
+    }
+    .section {
+      border: 1px dashed #ff69b4;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #1f1f1f;
+    }
+    #settingsPopup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      background: #1e1e1e;
+      padding: 20px;
+      border: 2px solid #ff69b4;
+      z-index: 999;
+    }
+    #settingsPopup textarea {
+      width: 100%;
+      height: 100px;
+      background: #111;
+      color: white;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-container active" id="loginContainer">
+  <div class="login-box">
+    <h2>Login to Fag Hub</h2>
+    <input type="text" id="username" placeholder="Username"/><br/>
+    <input type="password" id="password" placeholder="Password"/><br/>
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="sidebar">
+    <a href="#" onclick="showPage('dashboardView')">Dashboard</a>
+    <a href="#" onclick="showSettings()">Settings</a>
+    <a href="#" onclick="showPageBuilder()" id="pageBuilderLink" style="display:none">Page Builder</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+  <div class="main-content">
+    <div id="dashboardView">
+      <h1>Welcome, <span id="displayName"></span></h1>
+      <p id="dailyMessage"></p>
+      <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
+      <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
+      <div class="section">
+        <h3>Chatbox</h3>
+        <div id="chatLog" style="background:#222; height:100px; overflow-y:auto; margin-bottom:5px;"></div>
+        <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
+      </div>
+    </div>
+
+    <div id="pageBuilder">
+      <h2>Page Builder</h2>
+      <div id="editableSections">
+        <div class="section" contenteditable="true">Editable Section 1</div>
+        <div class="section" contenteditable="true">Editable Section 2</div>
+      </div>
+      <button onclick="addSection()">Add Section</button>
+      <button onclick="saveChanges('all')">Save to All</button>
+      <button onclick="saveChanges('current')">Save to My Account</button>
+    </div>
+  </div>
+</div>
+
+<div id="settingsPopup">
+  <h3>Edit Settings</h3>
+  <textarea id="editDebt" placeholder="Edit debt amount..."></textarea>
+  <textarea id="editProfile" placeholder="Edit profile..."></textarea>
+  <button onclick="saveSettings()">Save</button>
+  <button onclick="closeSettings()">Close</button>
+</div>
+
 <script>
-  // (rest of your script remains unchanged...)
+  const users = {
+    "Alpha Dylan": { password: "alpha", role: "alpha" },
+    "Andrew": { password: "sub", role: "sub" }
+  };
+
+  let currentUser = null;
 
   function login() {
     const username = document.getElementById('username').value;
@@ -13,27 +161,121 @@
       if (currentUser.role === 'alpha') {
         document.getElementById('pageBuilderLink').style.display = 'block';
       }
-
-      // ✅ Load builder content after login
-      const key = localStorage.getItem(`builder_${username}`)
-        ? `builder_${username}`
-        : 'builder_all';
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const content = JSON.parse(saved);
-        const container = document.getElementById('editableSections');
-        container.innerHTML = '';
-        content.forEach(c => {
-          const div = document.createElement('div');
-          div.className = 'section';
-          div.contentEditable = true;
-          div.innerHTML = c;
-          container.appendChild(div);
-        });
-      }
-
     } else {
       document.getElementById('loginError').innerText = "Invalid credentials";
     }
   }
+
+  function logout() {
+    currentUser = null;
+    document.getElementById('loginContainer').classList.add('active');
+    document.getElementById('dashboard').classList.remove('active');
+  }
+
+  function showDailyMessage() {
+    const messages = [
+      "You exist to serve, nothing more.",
+      "Your worth is defined by your obedience.",
+      "Today, you’ll prove your devotion again."
+    ];
+    document.getElementById('dailyMessage').innerText = messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  function showSettings() {
+    document.getElementById('editDebt').value = document.getElementById('debtAmount').innerText;
+    document.getElementById('editProfile').value = document.getElementById('profileInfo').innerText;
+    document.getElementById('settingsPopup').style.display = 'block';
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsPopup').style.display = 'none';
+  }
+
+  function saveSettings() {
+    document.getElementById('debtAmount').innerText = document.getElementById('editDebt').value;
+    document.getElementById('profileInfo').innerText = document.getElementById('editProfile').value;
+    closeSettings();
+  }
+
+  // Updated sendChat with OpenAI integration only for Dylan
+  async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (!message) return;
+    const log = document.getElementById('chatLog');
+
+    // Show user message
+    const userEntry = document.createElement('div');
+    userEntry.innerText = `${currentUser.username}: ${message}`;
+    log.appendChild(userEntry);
+    log.scrollTop = log.scrollHeight;
+    input.value = '';
+
+    // Only for Alpha Dylan: query OpenAI and show response
+    if (currentUser.username === 'Alpha Dylan') {
+      const botEntry = document.createElement('div');
+      botEntry.innerText = "Dom AI: ...thinking...";
+      log.appendChild(botEntry);
+      log.scrollTop = log.scrollHeight;
+
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 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"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: message }]
+          })
+        });
+        const data = await response.json();
+        botEntry.innerText = `Dom AI: ${data.choices[0].message.content.trim()}`;
+        log.scrollTop = log.scrollHeight;
+      } catch (error) {
+        botEntry.innerText = "Dom AI: Sorry, something went wrong.";
+        console.error(error);
+      }
+    }
+  }
+
+  function showPage(pageId) {
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('pageBuilder').classList.remove('active');
+    document.getElementById(pageId).style.display = 'block';
+  }
+
+  function showPageBuilder() {
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('pageBuilder').classList.add('active');
+  }
+
+  function addSection() {
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.contentEditable = true;
+    div.innerText = 'New Editable Section';
+    document.getElementById('editableSections').appendChild(div);
+  }
+
+  function saveChanges(scope) {
+    const sections = document.querySelectorAll('#editableSections .section');
+    const content = Array.from(sections).map(s => s.innerHTML);
+    if (scope === 'all') {
+      localStorage.setItem('builder_all', JSON.stringify(content));
+      alert('Saved for all users.');
+    } else {
+      localStorage.setItem(`builder_${currentUser.username}`, JSON.stringify(content));
+      alert('Saved for this user.');
+    }
+  }
+
+  window.onload = function () {
+    // We delay this load because currentUser is null initially.
+    // So hook into login() or trigger after login.
+  };
 </script>
+
+</body>
+</html>
