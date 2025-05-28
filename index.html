@@ -11,16 +11,13 @@
       background-color: #121212;
       color: white;
     }
-
     .login-container, .dashboard {
       display: none;
       padding: 20px;
     }
-
     .login-container.active, .dashboard.active {
       display: block;
     }
-
     .sidebar {
       height: 100vh;
       width: 200px;
@@ -29,34 +26,28 @@
       padding-top: 20px;
       display: none;
     }
-
     .sidebar.active {
       display: block;
     }
-
     .sidebar a {
       display: block;
       padding: 10px 15px;
       color: #ff69b4;
       text-decoration: none;
     }
-
     .sidebar a:hover {
       background-color: #333;
     }
-
     #main {
       margin-left: 200px;
       padding: 20px;
     }
-
     .message, .profile, .chatbox, .settings-popup {
       margin-bottom: 20px;
       background-color: #1e1e1e;
       padding: 15px;
       border-radius: 5px;
     }
-
     .chat-log {
       max-height: 150px;
       overflow-y: auto;
@@ -64,7 +55,6 @@
       padding: 10px;
       border-radius: 5px;
     }
-
     .settings-popup {
       display: none;
       position: fixed;
@@ -75,7 +65,6 @@
       z-index: 1000;
       border: 1px solid #ff69b4;
     }
-
     .settings-popup textarea {
       width: 100%;
       height: 100px;
@@ -84,12 +73,10 @@
       border: none;
       padding: 10px;
     }
-
     .canvas-builder {
       display: none;
       margin-top: 20px;
     }
-
     .canvas-builder.active {
       display: block;
     }
@@ -125,6 +112,9 @@
     <div class="canvas-builder" id="builderCanvas">
       <h3>Page Builder</h3>
       <div id="builderArea" contenteditable="true" style="background:#2c2c2c;padding:10px;border-radius:5px;">Edit this live area...</div>
+      <br/>
+      <button onclick="saveBuilder()">Save to Specific Account</button>
+      <button onclick="saveBuilder(true)">Save to All Accounts</button>
     </div>
   </div>
 
@@ -160,6 +150,7 @@
       document.getElementById("dailyMessage").innerText = dailyMessages[Math.floor(Math.random() * dailyMessages.length)];
       document.getElementById("profile").innerHTML = `<strong>Debt:</strong> ${users[currentUser].debt}<br/><strong>Profile:</strong> ${users[currentUser].profile}`;
       renderSidebar();
+      loadBuilderContent();
     }
 
     function renderSidebar() {
@@ -207,12 +198,26 @@
       builder.classList.toggle("active");
     }
 
-    function logout() {
-      location.reload();
+    function saveBuilder(toAll = false) {
+      const content = document.getElementById("builderArea").innerHTML;
+      if (toAll) {
+        localStorage.setItem("builder_global", content);
+        alert("Builder content saved for all accounts.");
+      } else {
+        localStorage.setItem(`builder_${currentUser}`, content);
+        alert(`Builder content saved for ${currentUser}.`);
+      }
     }
 
-    function showSection(section) {
-      // Only dashboard exists currently
+    function loadBuilderContent() {
+      const userContent = localStorage.getItem(`builder_${currentUser}`);
+      const globalContent = localStorage.getItem("builder_global");
+      const builderArea = document.getElementById("builderArea");
+      builderArea.innerHTML = userContent || globalContent || "Edit this live area...";
+    }
+
+    function logout() {
+      location.reload();
     }
   </script>
 
