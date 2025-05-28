@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fag Hub</title>
   <style>
     body {
@@ -94,6 +94,29 @@
       cursor: not-allowed;
       color: #aaa;
     }
+    #chatContainer {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    #chatSection, #chatGPTSection {
+      flex: 1;
+      min-width: 300px;
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      height: 250px;
+      display: flex;
+      flex-direction: column;
+    }
+    #chatLog, #chatGPTLog {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 5px;
+      background: #111;
+      padding: 10px;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
@@ -122,11 +145,21 @@
       <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
       <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
 
-      <!-- Chatbox for Dylan only -->
-      <div class="section" id="chatSection" style="display:none;">
-        <h3>Chatbox</h3>
-        <div id="chatLog" style="background:#222; height:100px; overflow-y:auto; margin-bottom:5px;"></div>
-        <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
+      <!-- Chat containers side by side -->
+      <div id="chatContainer">
+        <!-- Custom AI chatbox - visible to all -->
+        <div class="section" id="chatSection">
+          <h3>Custom AI Chatbox</h3>
+          <div id="chatLog"></div>
+          <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
+        </div>
+
+        <!-- ChatGPT box - Dylan only -->
+        <div class="section" id="chatGPTSection" style="display:none;">
+          <h3>ChatGPT</h3>
+          <div id="chatGPTLog"></div>
+          <input type="text" id="chatGPTInput" placeholder="Ask ChatGPT..." onkeypress="if(event.key==='Enter')sendChatGPT()" />
+        </div>
       </div>
     </div>
 
@@ -145,7 +178,7 @@
 
 <div id="settingsPopup">
   <h3>Edit Settings</h3>
-  <textarea id="editDebt" placeholder="Edit debt amount..."></textarea>
+  <!-- Removed debt editing -->
   <textarea id="editProfile" placeholder="Edit profile..."></textarea>
   <input type="password" id="editPassword" placeholder="Change password..."/>
   <button onclick="saveSettings()">Save</button>
@@ -154,8 +187,8 @@
 
 <script>
   const users = {
-    "Alpha Dylan": { password: "alpha", role: "alpha", kinks: "", profile: "Obedient sub with growing debt" },
-    "Andrew": { password: "sub", role: "sub", kinks: "", profile: "Obedient sub with growing debt" }
+    "Alpha Dylan": { password: "alpha", role: "alpha", profile: "Obedient sub with growing debt" },
+    "Andrew": { password: "sub", role: "sub", profile: "Obedient sub with growing debt" }
   };
 
   let currentUser = null;
@@ -170,17 +203,18 @@
       document.getElementById('displayName').innerText = username;
       showDailyMessage();
 
-      // Show chatbox only for Dylan
+      // Show chatbox (custom AI) for all users
+      document.getElementById('chatSection').style.display = 'flex';
+
+      // Show ChatGPT only for Dylan
       if (currentUser.username === 'Alpha Dylan') {
-        document.getElementById('chatSection').style.display = 'block';
+        document.getElementById('chatGPTSection').style.display = 'flex';
         document.getElementById('pageBuilderLink').style.display = 'block';
       } else {
-        document.getElementById('chatSection').style.display = 'none';
+        document.getElementById('chatGPTSection').style.display = 'none';
         document.getElementById('pageBuilderLink').style.display = 'none';
-        // Disable chat input for others
-        document.getElementById('chatInput').disabled = true;
       }
-      // Show dashboard and hide other pages initially
+
       showPage('dashboardView');
     } else {
       document.getElementById('loginError').innerText = "Invalid credentials";
@@ -193,8 +227,8 @@
     document.getElementById('dashboard').classList.remove('active');
     document.getElementById('pageBuilder').style.display = 'none';
     document.getElementById('pageBuilderLink').style.display = 'none';
+    document.getElementById('chatGPTSection').style.display = 'none';
     document.getElementById('chatSection').style.display = 'none';
-    document.getElementById('chatInput').disabled = false;
   }
 
   function showDailyMessage() {
@@ -207,7 +241,7 @@
   }
 
   function showSettings() {
-    document.getElementById('editDebt').value = document.getElementById('debtAmount').innerText;
+    // debt no longer editable, so not filled or shown
     document.getElementById('editProfile').value = document.getElementById('profileInfo').innerText;
     document.getElementById('editPassword').value = '';
     document.getElementById('settingsPopup').style.display = 'block';
@@ -227,11 +261,8 @@
   }
 
   function saveSettings() {
-    // Save debt and profile from settings popup
-    document.getElementById('debtAmount').innerText = document.getElementById('editDebt').value;
+    // Save profile from settings popup
     document.getElementById('profileInfo').innerText = document.getElementById('editProfile').value;
-
-    // Save to users data object
     users[currentUser.username].profile = document.getElementById('editProfile').value;
 
     // Change password if filled
@@ -274,10 +305,10 @@
   }
 
   function saveChanges(scope) {
-    // For demo, we just alert saving scope (all or current user)
     alert(`Saved changes to ${scope === 'all' ? 'everyone' : currentUser.username}'s view`);
   }
 
+  // Custom AI chatbox logic (for all users)
   function sendChat() {
     const input = document.getElementById('chatInput');
     if(!input.value.trim()) return;
@@ -288,13 +319,33 @@
     log.scrollTop = log.scrollHeight;
     input.value = '';
 
-    // Fake Dom reply after delay
+    // Fake reply from custom AI after delay
     setTimeout(() => {
       const reply = document.createElement('div');
-      reply.textContent = "Dom: Good boy. Keep it up.";
+      reply.textContent = "Custom AI: I'm here for you.";
       log.appendChild(reply);
       log.scrollTop = log.scrollHeight;
     }, 1000);
+  }
+
+  // ChatGPT box logic - Dylan only (stub)
+  function sendChatGPT() {
+    const input = document.getElementById('chatGPTInput');
+    if(!input.value.trim()) return;
+    const log = document.getElementById('chatGPTLog');
+    const message = document.createElement('div');
+    message.textContent = `You: ${input.value}`;
+    log.appendChild(message);
+    log.scrollTop = log.scrollHeight;
+    input.value = '';
+
+    // Simulate ChatGPT reply
+    setTimeout(() => {
+      const reply = document.createElement('div');
+      reply.textContent = "ChatGPT: [Simulated reply]";
+      log.appendChild(reply);
+      log.scrollTop = log.scrollHeight;
+    }, 1500);
   }
 </script>
 
