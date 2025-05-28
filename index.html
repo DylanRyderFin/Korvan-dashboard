@@ -2,19 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fag Hub</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       background: #121212;
-      color: white;
+      color: #eee;
     }
-    .login-container, .dashboard, #pageBuilder {
+    .login-container,
+    .dashboard,
+    #pageBuilder {
       display: none;
     }
-    .login-container.active, .dashboard.active, #pageBuilder.active {
+    .login-container.active,
+    .dashboard.active,
+    #pageBuilder.active {
       display: block;
     }
     .login-box {
@@ -26,18 +30,37 @@
       border-radius: 10px;
       text-align: center;
     }
-    input {
+    input,
+    textarea {
+      background: #222;
+      color: #eee;
+      border: 1.5px solid #ff69b4;
+      border-radius: 6px;
       padding: 8px;
       margin: 5px 0;
       width: 90%;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    input:focus,
+    textarea:focus {
+      border-color: #ff85c1;
+      background: #2b2b2b;
     }
     button {
-      padding: 8px 12px;
+      padding: 8px 16px;
       background: #ff69b4;
       border: none;
-      color: white;
+      border-radius: 8px;
+      color: #fff;
       cursor: pointer;
-      margin-top: 10px;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background: #ff85c1;
     }
     .sidebar {
       position: fixed;
@@ -51,22 +74,28 @@
     }
     .sidebar a {
       display: block;
-      padding: 10px;
-      color: white;
+      padding: 12px 15px;
+      color: #eee;
       text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
     }
     .sidebar a:hover {
-      background: #333;
+      background: #2b2b2b;
     }
     .main-content {
       margin-left: 210px;
       padding: 20px;
     }
     .section {
-      border: 1px dashed #ff69b4;
-      padding: 10px;
-      margin-bottom: 10px;
+      border: 1.5px dashed #ff69b4;
+      padding: 12px 15px;
+      margin-bottom: 15px;
       background: #1f1f1f;
+      border-radius: 8px;
+      font-size: 1rem;
+      line-height: 1.4;
     }
     #settingsPopup {
       display: none;
@@ -75,332 +104,313 @@
       left: 50%;
       transform: translate(-50%, -20%);
       background: #1e1e1e;
-      padding: 20px;
+      padding: 25px;
       border: 2px solid #ff69b4;
       z-index: 999;
-      width: 300px;
+      width: 320px;
+      border-radius: 10px;
     }
     #settingsPopup textarea {
       width: 100%;
       height: 100px;
-      background: #111;
-      color: white;
-      margin-bottom: 10px;
-    }
-    #chatLog, #chatGPTLog {
-      background:#222;
-      height:100px;
-      overflow-y:auto;
-      margin-bottom:5px;
-      padding: 5px;
-      white-space: pre-wrap;
-      border-radius: 4px;
-    }
-    #chatInput, #chatGPTInput {
-      width: 100%;
+      background: #222;
+      color: #eee;
+      margin-bottom: 12px;
+      border: 1.5px solid #ff69b4;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 1rem;
       padding: 8px;
-      margin-bottom: 10px;
-      background: #111;
-      color: white;
-      border: none;
-      border-radius: 4px;
+      outline: none;
     }
-    #chatSection, #chatGPTSection {
-      margin-top: 15px;
+    #settingsPopup textarea:focus {
+      border-color: #ff85c1;
+      background: #2b2b2b;
+    }
+    #chatLog,
+    #chatGPTLog {
+      background: #222;
+      height: 120px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      white-space: pre-wrap;
+      border-radius: 8px;
+      border: 1.5px solid #ff69b4;
+      color: #eee;
+      font-size: 0.95rem;
+    }
+    #chatInput,
+    #chatGPTInput {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      background: #222;
+      color: #eee;
+      border: 1.5px solid #ff69b4;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+    #chatInput:focus,
+    #chatGPTInput:focus {
+      border-color: #ff85c1;
+      background: #2b2b2b;
+    }
+    /* Scrollbar styling for chat logs */
+    #chatLog::-webkit-scrollbar,
+    #chatGPTLog::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chatLog::-webkit-scrollbar-track,
+    #chatGPTLog::-webkit-scrollbar-track {
+      background: #1e1e1e;
+      border-radius: 8px;
+    }
+    #chatLog::-webkit-scrollbar-thumb,
+    #chatGPTLog::-webkit-scrollbar-thumb {
+      background: #ff69b4;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-
-<div class="login-container active" id="loginContainer">
-  <div class="login-box">
-    <h2>Login to Fag Hub</h2>
-    <input type="text" id="username" placeholder="Username"/><br/>
-    <input type="password" id="password" placeholder="Password"/><br/>
-    <button onclick="login()">Login</button>
-    <p id="loginError" style="color:red;"></p>
-  </div>
-</div>
-
-<div class="dashboard" id="dashboard">
-  <div class="sidebar">
-    <a href="#" onclick="showPage('dashboardView')">Dashboard</a>
-    <a href="#" onclick="showSettings()">Settings</a>
-    <a href="#" onclick="showPageBuilder()" id="pageBuilderLink" style="display:none">Page Builder</a>
-    <a href="#" onclick="logout()">Logout</a>
-  </div>
-  <div class="main-content">
-    <div id="dashboardView">
-      <h1>Welcome, <span id="displayName"></span></h1>
-      <p id="dailyMessage"></p>
-      <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
-      <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
-
-      <!-- Custom AI Chatbox for all users -->
-      <div class="section" id="chatSection" style="display:none;">
-        <h3>Custom AI Chatbox</h3>
-        <div id="chatLog"></div>
-        <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
-      </div>
-
-      <!-- ChatGPT Box only for Dylan -->
-      <div class="section" id="chatGPTSection" style="display:none;">
-        <h3>ChatGPT</h3>
-        <div id="chatGPTLog"></div>
-        <input type="text" id="chatGPTInput" placeholder="Ask ChatGPT..." onkeypress="if(event.key==='Enter')sendChatGPT()" />
-      </div>
-    </div>
-
-    <div id="pageBuilder" style="display:none;">
-      <h2>Page Builder</h2>
-      <div id="editableSections">
-        <div class="section" contenteditable="true">Editable Section 1</div>
-        <div class="section" contenteditable="true">Editable Section 2</div>
-      </div>
-      <button onclick="addSection()">Add Section</button>
-      <button onclick="saveChanges('all')">Save to All</button>
-      <button onclick="saveChanges('current')">Save to My Account</button>
+  <div class="login-container active" id="loginContainer">
+    <div class="login-box">
+      <h2>Login to Fag Hub</h2>
+      <input type="text" id="username" placeholder="Username" />
+      <br />
+      <input type="password" id="password" placeholder="Password" />
+      <br />
+      <button onclick="login()">Login</button>
+      <p id="loginError" style="color:#ff6969;"></p>
     </div>
   </div>
-</div>
 
-<div id="settingsPopup">
-  <h3>Edit Settings</h3>
-  <!-- Debt editing removed -->
-  <!-- Only profile and password -->
-  <textarea id="editProfile" placeholder="Edit profile..."></textarea>
-  <input type="password" id="editPassword" placeholder="Change password (leave blank to keep)" />
-  <button onclick="saveSettings()">Save</button>
-  <button onclick="closeSettings()">Close</button>
-</div>
+  <div class="dashboard" id="dashboard">
+    <div class="sidebar">
+      <a href="#" onclick="showPage('dashboardView')">Dashboard</a>
+      <a href="#" onclick="showSettings()">Settings</a>
+      <a href="#" onclick="showPageBuilder()" id="pageBuilderLink" style="display:none">Page Builder</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
 
-<script>
-  const users = {
-    "Alpha Dylan": { password: "alpha", role: "alpha" },
-    "Andrew": { password: "sub", role: "sub" }
-  };
+    <div class="main-content">
+      <div id="dashboardView">
+        <h1>Welcome, <span id="displayName"></span></h1>
+        <p id="dailyMessage"></p>
 
-  let currentUser = null;
+        <div class="section" id="debtSection">
+          Debt Price: <span id="debtAmount">$1000</span>
+        </div>
 
-  // LOGIN FUNCTION
-  function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    if (users[username] && users[username].password === password) {
-      currentUser = { username, role: users[username].role };
-      document.getElementById('loginContainer').classList.remove('active');
-      document.getElementById('dashboard').classList.add('active');
-      document.getElementById('displayName').innerText = username;
-      showDailyMessage();
+        <div class="section" id="profileSection">
+          Profile: <span id="profileInfo">Obedient sub with growing debt</span>
+        </div>
 
-      // Show chatbox (custom AI) for all users
-      document.getElementById('chatSection').style.display = 'block';
+        <div class="section">
+          <h3>Custom AI Chatbox</h3>
+          <div id="chatLog"></div>
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Say something to your dom..."
+            onkeypress="if(event.key==='Enter')sendChat()"
+          />
+        </div>
 
-      // Load custom chat for current user
-      loadChat();
+        <div class="section" id="chatGPTSection" style="display:none;">
+          <h3>ChatGPT</h3>
+          <div id="chatGPTLog"></div>
+          <input
+            type="text"
+            id="chatGPTInput"
+            placeholder="Ask ChatGPT..."
+            onkeypress="if(event.key==='Enter')sendChatGPT()"
+          />
+        </div>
+      </div>
 
-      // Show ChatGPT and Page Builder only for Dylan
-      if (currentUser.username === 'Alpha Dylan') {
-        document.getElementById('chatGPTSection').style.display = 'block';
-        document.getElementById('pageBuilderLink').style.display = 'block';
+      <div id="pageBuilder">
+        <h2>Page Builder</h2>
+        <div id="editableSections">
+          <div class="section" contenteditable="true">Editable Section 1</div>
+          <div class="section" contenteditable="true">Editable Section 2</div>
+        </div>
+        <button onclick="addSection()">Add Section</button>
+        <button onclick="saveChanges('all')">Save to All</button>
+        <button onclick="saveChanges('current')">Save to My Account</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsPopup">
+    <h3>Edit Settings</h3>
+    <textarea id="editProfile" placeholder="Edit profile..."></textarea>
+    <textarea id="editKinks" placeholder="Edit your kinks..."></textarea>
+    <textarea id="editPassword" placeholder="Change password..."></textarea>
+    <button onclick="saveSettings()">Save</button>
+    <button onclick="closeSettings()">Close</button>
+  </div>
+
+  <script>
+    const users = {
+      "Alpha Dylan": {
+        password: "alpha",
+        role: "alpha",
+        kinks: "Your default kinks here",
+        profile: "Obedient alpha dom",
+        debt: "$0",
+      },
+      Andrew: {
+        password: "sub",
+        role: "sub",
+        kinks: "Your default kinks here",
+        profile: "Obedient sub with growing debt",
+        debt: "$1000",
+      },
+    };
+
+    let currentUser = null;
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      if (users[username] && users[username].password === password) {
+        currentUser = { username, role: users[username].role };
+        document.getElementById("loginContainer").classList.remove("active");
+        document.getElementById("dashboard").classList.add("active");
+        document.getElementById("displayName").textContent = username;
+        document.getElementById("pageBuilderLink").style.display =
+          username === "Alpha Dylan" ? "block" : "none";
+        document.getElementById("chatGPTSection").style.display =
+          username === "Alpha Dylan" ? "block" : "none";
+        loadDailyMessage();
+        document.getElementById("debtAmount").textContent = users[username].debt;
+        document.getElementById("profileInfo").textContent = users[username].profile;
+        showPage("dashboardView");
       } else {
-        document.getElementById('chatGPTSection').style.display = 'none';
-        document.getElementById('pageBuilderLink').style.display = 'none';
+        document.getElementById("loginError").textContent =
+          "Invalid username or password";
       }
-
-      showPage('dashboardView');
-      clearLoginError();
-    } else {
-      document.getElementById('loginError').innerText = "Invalid credentials";
     }
-  }
 
-  function clearLoginError() {
-    document.getElementById('loginError').innerText = '';
-  }
-
-  // LOGOUT FUNCTION
-  function logout() {
-    currentUser = null;
-    document.getElementById('loginContainer').classList.add('active');
-    document.getElementById('dashboard').classList.remove('active');
-    // Reset chatboxes
-    document.getElementById('chatLog').innerHTML = '';
-    document.getElementById('chatGPTLog').innerHTML = '';
-    document.getElementById('chatInput').value = '';
-    document.getElementById('chatGPTInput').value = '';
-  }
-
-  // DAILY MESSAGE
-  function showDailyMessage() {
-    const messages = [
-      "You exist to serve, nothing more.",
-      "Your worth is defined by your obedience.",
-      "Today, you’ll prove your devotion again."
-    ];
-    document.getElementById('dailyMessage').innerText = messages[Math.floor(Math.random() * messages.length)];
-  }
-
-  // SHOW PAGE FUNCTION
-  function showPage(id) {
-    // Hide all top-level views
-    document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById('pageBuilder').style.display = 'none';
-
-    document.getElementById(id).style.display = 'block';
-  }
-
-  // SETTINGS POPUP
-  function showSettings() {
-    if (!currentUser) return;
-    document.getElementById('settingsPopup').style.display = 'block';
-    // Load current profile
-    document.getElementById('editProfile').value = localStorage.getItem(`profile_${currentUser.username}`) || 'Obedient sub with growing debt';
-    // Clear password input
-    document.getElementById('editPassword').value = '';
-  }
-  function closeSettings() {
-    document.getElementById('settingsPopup').style.display = 'none';
-  }
-  function saveSettings() {
-    if (!currentUser) return;
-    const profile = document.getElementById('editProfile').value;
-    const newPass = document.getElementById('editPassword').value;
-
-    localStorage.setItem(`profile_${currentUser.username}`, profile);
-    document.getElementById('profileInfo').innerText = profile;
-
-    if (newPass.trim()) {
-      users[currentUser.username].password = newPass;
-      alert('Password changed.');
+    function logout() {
+      currentUser = null;
+      document.getElementById("dashboard").classList.remove("active");
+      document.getElementById("loginContainer").classList.add("active");
+      clearChat();
+      clearChatGPT();
     }
-    closeSettings();
-  }
 
-  // PAGE BUILDER
-  function showPageBuilder() {
-    if (currentUser && currentUser.username === 'Alpha Dylan') {
-      showPage('pageBuilder');
-      loadPageBuilder();
+    function showPage(pageId) {
+      document.getElementById("dashboardView").style.display =
+        pageId === "dashboardView" ? "block" : "none";
+      document.getElementById("pageBuilder").classList.remove("active");
     }
-  }
-  function addSection() {
-    const container = document.getElementById('editableSections');
-    const newSection = document.createElement('div');
-    newSection.classList.add('section');
-    newSection.contentEditable = "true";
-    newSection.textContent = 'New editable section';
-    container.appendChild(newSection);
-  }
-  function saveChanges(scope) {
-    const container = document.getElementById('editableSections');
-    const sections = container.querySelectorAll('.section');
-    const contents = [];
-    sections.forEach(sec => contents.push(sec.innerHTML));
 
-    if (scope === 'all') {
-      localStorage.setItem('pageBuilder_all', JSON.stringify(contents));
-      alert('Saved changes for ALL users');
-    } else if (scope === 'current' && currentUser) {
-      localStorage.setItem(`pageBuilder_${currentUser.username}`, JSON.stringify(contents));
-      alert('Saved changes for YOUR account');
+    function showSettings() {
+      document.getElementById("settingsPopup").style.display = "block";
+      if (currentUser) {
+        document.getElementById("editProfile").value = users[currentUser.username].profile;
+        document.getElementById("editKinks").value = users[currentUser.username].kinks;
+        document.getElementById("editPassword").value = "";
+      }
     }
-  }
-  function loadPageBuilder() {
-    let contents = null;
-    if (localStorage.getItem(`pageBuilder_${currentUser.username}`)) {
-      contents = JSON.parse(localStorage.getItem(`pageBuilder_${currentUser.username}`));
-    } else if (localStorage.getItem('pageBuilder_all')) {
-      contents = JSON.parse(localStorage.getItem('pageBuilder_all'));
-    }
-    if (contents) {
-      const container = document.getElementById('editableSections');
-      container.innerHTML = '';
-      contents.forEach(html => {
-        const div = document.createElement('div');
-        div.classList.add('section');
-        div.contentEditable = "true";
-        div.innerHTML = html;
-        container.appendChild(div);
-      });
-    }
-  }
 
-  // CUSTOM AI CHATBOX (per-user chat history)
-  function loadChat() {
-    if (!currentUser) return;
-    const log = document.getElementById('chatLog');
-    log.innerHTML = '';
-    const history = localStorage.getItem(`chat_${currentUser.username}`);
-    if (history) {
-      const messages = JSON.parse(history);
-      messages.forEach(msg => {
-        const div = document.createElement('div');
-        div.textContent = msg;
-        log.appendChild(div);
-      });
+    function closeSettings() {
+      document.getElementById("settingsPopup").style.display = "none";
+    }
+
+    function saveSettings() {
+      if (currentUser) {
+        users[currentUser.username].profile = document.getElementById("editProfile").value;
+        users[currentUser.username].kinks = document.getElementById("editKinks").value;
+        const newPass = document.getElementById("editPassword").value;
+        if (newPass) users[currentUser.username].password = newPass;
+        document.getElementById("profileInfo").textContent = users[currentUser.username].profile;
+        alert("Settings saved.");
+        closeSettings();
+      }
+    }
+
+    function showPageBuilder() {
+      if (currentUser && currentUser.username === "Alpha Dylan") {
+        document.getElementById("dashboardView").style.display = "none";
+        document.getElementById("pageBuilder").classList.add("active");
+      }
+    }
+
+    function addSection() {
+      const container = document.getElementById("editableSections");
+      const newSection = document.createElement("div");
+      newSection.classList.add("section");
+      newSection.contentEditable = "true";
+      newSection.textContent = "New editable section";
+      container.appendChild(newSection);
+    }
+
+    function saveChanges(scope) {
+      const content = document.getElementById("editableSections").innerHTML;
+      if (scope === "all") {
+        localStorage.setItem("pageContent_all", content);
+        alert("Saved to all users");
+      } else if (scope === "current" && currentUser) {
+        localStorage.setItem("pageContent_" + currentUser.username, content);
+        alert("Saved to your account");
+      }
+    }
+
+    function loadDailyMessage() {
+      const messages = [
+        "Serve well today, pet.",
+        "Your debt grows with your obedience.",
+        "Remember who owns you.",
+      ];
+      const msg = messages[Math.floor(Math.random() * messages.length)];
+      document.getElementById("dailyMessage").textContent = msg;
+    }
+
+    // Custom AI chatbox functions (local demo: messages visible only to current user)
+    function sendChat() {
+      const input = document.getElementById("chatInput");
+      const msg = input.value.trim();
+      if (!msg) return;
+      addChatMessage(currentUser.username, msg);
+      input.value = "";
+    }
+
+    function addChatMessage(sender, message) {
+      const log = document.getElementById("chatLog");
+      log.textContent += `${sender}: ${message}\n`;
       log.scrollTop = log.scrollHeight;
     }
-  }
-  function saveChatMessage(message) {
-    if (!currentUser) return;
-    const key = `chat_${currentUser.username}`;
-    let history = localStorage.getItem(key);
-    let messages = history ? JSON.parse(history) : [];
-    messages.push(message);
-    localStorage.setItem(key, JSON.stringify(messages));
-  }
-  function sendChat() {
-    const input = document.getElementById('chatInput');
-    if (!input.value.trim()) return;
-    const log = document.getElementById('chatLog');
-    const userMsg = `You: ${input.value}`;
-    const userDiv = document.createElement('div');
-    userDiv.textContent = userMsg;
-    log.appendChild(userDiv);
-    log.scrollTop = log.scrollHeight;
 
-    saveChatMessage(userMsg);
+    function clearChat() {
+      document.getElementById("chatLog").textContent = "";
+    }
 
-    const userInput = input.value;
-    input.value = '';
+    // ChatGPT box (Dylan only, mock/demo)
+    function sendChatGPT() {
+      const input = document.getElementById("chatGPTInput");
+      const msg = input.value.trim();
+      if (!msg) return;
+      addChatGPTMessage("Dylan", msg);
+      input.value = "";
+      setTimeout(() => {
+        addChatGPTMessage("ChatGPT", "This is a demo response to: " + msg);
+      }, 1000);
+    }
 
-    // Fake AI reply after delay
-    setTimeout(() => {
-      const replyText = "Custom AI: I'm here for you.";
-      const replyDiv = document.createElement('div');
-      replyDiv.textContent = replyText;
-      log.appendChild(replyDiv);
+    function addChatGPTMessage(sender, message) {
+      const log = document.getElementById("chatGPTLog");
+      log.textContent += `${sender}: ${message}\n`;
       log.scrollTop = log.scrollHeight;
+    }
 
-      saveChatMessage(replyText);
-    }, 1000);
-  }
-
-  // CHATGPT BOX (Dylan only, simple echo for demo)
-  function sendChatGPT() {
-    const input = document.getElementById('chatGPTInput');
-    if (!input.value.trim()) return;
-    const log = document.getElementById('chatGPTLog');
-    const userMsg = `You: ${input.value}`;
-    const userDiv = document.createElement('div');
-    userDiv.textContent = userMsg;
-    log.appendChild(userDiv);
-    log.scrollTop = log.scrollHeight;
-
-    // Simulate ChatGPT reply after delay
-    setTimeout(() => {
-      const replyText = "ChatGPT: Sorry, no backend yet.";
-      const replyDiv = document.createElement('div');
-      replyDiv.textContent = replyText;
-      log.appendChild(replyDiv);
-      log.scrollTop = log.scrollHeight;
-    }, 1200);
-
-    input.value = '';
-  }
-
-</script>
-
+    function clearChatGPT() {
+      document.getElementById("chatGPTLog").textContent = "";
+    }
+  </script>
 </body>
 </html>
