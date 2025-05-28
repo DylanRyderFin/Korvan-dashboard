@@ -26,10 +26,14 @@
       border-radius: 10px;
       text-align: center;
     }
-    input {
+    input, textarea {
       padding: 8px;
       margin: 5px 0;
       width: 90%;
+      background: #111;
+      color: white;
+      border: 1px solid #ff69b4;
+      border-radius: 5px;
     }
     button {
       padding: 8px 12px;
@@ -38,6 +42,7 @@
       color: white;
       cursor: pointer;
       margin-top: 10px;
+      border-radius: 5px;
     }
     .sidebar {
       position: fixed;
@@ -78,13 +83,16 @@
       padding: 20px;
       border: 2px solid #ff69b4;
       z-index: 999;
+      width: 300px;
     }
-    #settingsPopup textarea {
+    #settingsPopup textarea, #settingsPopup input {
       width: 100%;
-      height: 100px;
-      background: #111;
-      color: white;
       margin-bottom: 10px;
+    }
+    #chatInput[disabled] {
+      background: #444;
+      cursor: not-allowed;
+      color: #aaa;
     }
   </style>
 </head>
@@ -113,14 +121,16 @@
       <p id="dailyMessage"></p>
       <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
       <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
-      <div class="section">
+
+      <!-- Chatbox for Dylan only -->
+      <div class="section" id="chatSection" style="display:none;">
         <h3>Chatbox</h3>
         <div id="chatLog" style="background:#222; height:100px; overflow-y:auto; margin-bottom:5px;"></div>
         <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
       </div>
     </div>
 
-    <div id="pageBuilder">
+    <div id="pageBuilder" style="display:none;">
       <h2>Page Builder</h2>
       <div id="editableSections">
         <div class="section" contenteditable="true">Editable Section 1</div>
@@ -137,14 +147,15 @@
   <h3>Edit Settings</h3>
   <textarea id="editDebt" placeholder="Edit debt amount..."></textarea>
   <textarea id="editProfile" placeholder="Edit profile..."></textarea>
+  <input type="password" id="editPassword" placeholder="Change password..."/>
   <button onclick="saveSettings()">Save</button>
   <button onclick="closeSettings()">Close</button>
 </div>
 
 <script>
   const users = {
-    "Alpha Dylan": { password: "alpha", role: "alpha" },
-    "Andrew": { password: "sub", role: "sub" }
+    "Alpha Dylan": { password: "alpha", role: "alpha", kinks: "", profile: "Obedient sub with growing debt" },
+    "Andrew": { password: "sub", role: "sub", kinks: "", profile: "Obedient sub with growing debt" }
   };
 
   let currentUser = null;
@@ -158,9 +169,19 @@
       document.getElementById('dashboard').classList.add('active');
       document.getElementById('displayName').innerText = username;
       showDailyMessage();
-      if (currentUser.role === 'alpha') {
+
+      // Show chatbox only for Dylan
+      if (currentUser.username === 'Alpha Dylan') {
+        document.getElementById('chatSection').style.display = 'block';
         document.getElementById('pageBuilderLink').style.display = 'block';
+      } else {
+        document.getElementById('chatSection').style.display = 'none';
+        document.getElementById('pageBuilderLink').style.display = 'none';
+        // Disable chat input for others
+        document.getElementById('chatInput').disabled = true;
       }
+      // Show dashboard and hide other pages initially
+      showPage('dashboardView');
     } else {
       document.getElementById('loginError').innerText = "Invalid credentials";
     }
@@ -170,6 +191,10 @@
     currentUser = null;
     document.getElementById('loginContainer').classList.add('active');
     document.getElementById('dashboard').classList.remove('active');
+    document.getElementById('pageBuilder').style.display = 'none';
+    document.getElementById('pageBuilderLink').style.display = 'none';
+    document.getElementById('chatSection').style.display = 'none';
+    document.getElementById('chatInput').disabled = false;
   }
 
   function showDailyMessage() {
@@ -184,7 +209,17 @@
   function showSettings() {
     document.getElementById('editDebt').value = document.getElementById('debtAmount').innerText;
     document.getElementById('editProfile').value = document.getElementById('profileInfo').innerText;
+    document.getElementById('editPassword').value = '';
     document.getElementById('settingsPopup').style.display = 'block';
+
+    // Show Page Builder in Settings only for Dylan
+    if (currentUser.username === 'Alpha Dylan') {
+      document.getElementById('pageBuilder').style.display = 'block';
+      showPageBuilder();
+    } else {
+      document.getElementById('pageBuilder').style.display = 'none';
+      showPage('dashboardView');
+    }
   }
 
   function closeSettings() {
@@ -192,89 +227,75 @@
   }
 
   function saveSettings() {
+    // Save debt and profile from settings popup
     document.getElementById('debtAmount').innerText = document.getElementById('editDebt').value;
     document.getElementById('profileInfo').innerText = document.getElementById('editProfile').value;
-    closeSettings();
-  }
 
-  // Updated sendChat with OpenAI integration only for Dylan
-  async function sendChat() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    if (!message) return;
-    const log = document.getElementById('chatLog');
+    // Save to users data object
+    users[currentUser.username].profile = document.getElementById('editProfile').value;
 
-    // Show user message
-    const userEntry = document.createElement('div');
-    userEntry.innerText = `${currentUser.username}: ${message}`;
-    log.appendChild(userEntry);
-    log.scrollTop = log.scrollHeight;
-    input.value = '';
-
-    // Only for Alpha Dylan: query OpenAI and show response
-    if (currentUser.username === 'Alpha Dylan') {
-      const botEntry = document.createElement('div');
-      botEntry.innerText = "Dom AI: ...thinking...";
-      log.appendChild(botEntry);
-      log.scrollTop = log.scrollHeight;
-
-      try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: message }]
-          })
-        });
-        const data = await response.json();
-        botEntry.innerText = `Dom AI: ${data.choices[0].message.content.trim()}`;
-        log.scrollTop = log.scrollHeight;
-      } catch (error) {
-        botEntry.innerText = "Dom AI: Sorry, something went wrong.";
-        console.error(error);
-      }
+    // Change password if filled
+    const newPass = document.getElementById('editPassword').value;
+    if (newPass.trim().length > 0) {
+      users[currentUser.username].password = newPass;
+      alert("Password changed successfully");
     }
+
+    closeSettings();
   }
 
   function showPage(pageId) {
     document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById('pageBuilder').classList.remove('active');
-    document.getElementById(pageId).style.display = 'block';
-  }
+    document.getElementById('pageBuilder').style.display = 'none';
 
-  function showPageBuilder() {
-    document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById('pageBuilder').classList.add('active');
-  }
-
-  function addSection() {
-    const div = document.createElement('div');
-    div.className = 'section';
-    div.contentEditable = true;
-    div.innerText = 'New Editable Section';
-    document.getElementById('editableSections').appendChild(div);
-  }
-
-  function saveChanges(scope) {
-    const sections = document.querySelectorAll('#editableSections .section');
-    const content = Array.from(sections).map(s => s.innerHTML);
-    if (scope === 'all') {
-      localStorage.setItem('builder_all', JSON.stringify(content));
-      alert('Saved for all users.');
-    } else {
-      localStorage.setItem(`builder_${currentUser.username}`, JSON.stringify(content));
-      alert('Saved for this user.');
+    if(pageId === 'dashboardView') {
+      document.getElementById('dashboardView').style.display = 'block';
+    } else if(pageId === 'pageBuilder') {
+      if(currentUser.username === 'Alpha Dylan') {
+        document.getElementById('pageBuilder').style.display = 'block';
+      }
     }
   }
 
-  window.onload = function () {
-    // We delay this load because currentUser is null initially.
-    // So hook into login() or trigger after login.
-  };
+  function showPageBuilder() {
+    if(currentUser.username === 'Alpha Dylan') {
+      document.getElementById('pageBuilder').style.display = 'block';
+      document.getElementById('dashboardView').style.display = 'none';
+    }
+  }
+
+  function addSection() {
+    const container = document.getElementById('editableSections');
+    const newSection = document.createElement('div');
+    newSection.className = 'section';
+    newSection.contentEditable = 'true';
+    newSection.textContent = 'New editable section';
+    container.appendChild(newSection);
+  }
+
+  function saveChanges(scope) {
+    // For demo, we just alert saving scope (all or current user)
+    alert(`Saved changes to ${scope === 'all' ? 'everyone' : currentUser.username}'s view`);
+  }
+
+  function sendChat() {
+    const input = document.getElementById('chatInput');
+    if(!input.value.trim()) return;
+    const log = document.getElementById('chatLog');
+    const message = document.createElement('div');
+    message.textContent = `You: ${input.value}`;
+    log.appendChild(message);
+    log.scrollTop = log.scrollHeight;
+    input.value = '';
+
+    // Fake Dom reply after delay
+    setTimeout(() => {
+      const reply = document.createElement('div');
+      reply.textContent = "Dom: Good boy. Keep it up.";
+      log.appendChild(reply);
+      log.scrollTop = log.scrollHeight;
+    }, 1000);
+  }
 </script>
 
 </body>
