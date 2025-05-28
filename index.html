@@ -2,661 +2,262 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fag Hub</title>
   <style>
     body {
-      background: #111;
-      color: #eee;
-      font-family: 'Arial', sans-serif;
-      padding: 2rem;
+      font-family: Arial, sans-serif;
       margin: 0;
+      background: #121212;
+      color: white;
     }
-    h1 {
-      font-size: 2rem;
-      color: #ff69b4;
+    .login-container, .dashboard, #pageBuilder {
+      display: none;
     }
-    .section {
-      margin-bottom: 2rem;
-      border: 1px solid #333;
-      padding: 1rem;
-      border-radius: 12px;
-      background: #1c1c1c;
+    .login-container.active, .dashboard.active, #pageBuilder.active {
+      display: block;
     }
-    .label {
-      font-weight: bold;
-      color: #aaa;
+    .login-box {
+      max-width: 300px;
+      margin: 100px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      border: 2px solid #ff69b4;
+      border-radius: 10px;
+      text-align: center;
     }
-    #chatbox {
-      border-top: 1px solid #444;
-      padding-top: 1rem;
-    }
-    .chatlog {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      background: #222;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    .chatlog div { margin: 0.5rem 0; }
-    input, button, textarea, select {
-      padding: 0.5rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      background: #222;
-      color: #eee;
-      box-sizing: border-box;
-      margin-bottom: 0.5rem;
-      width: 100%;
+    input {
+      padding: 8px;
+      margin: 5px 0;
+      width: 90%;
     }
     button {
+      padding: 8px 12px;
       background: #ff69b4;
-      color: #111;
-      cursor: pointer;
       border: none;
-      transition: background-color 0.2s ease;
-      width: auto;
-      padding-left: 1rem;
-      padding-right: 1rem;
-      margin-right: 0.5rem;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
     }
-    button:hover {
-      background: #e55aa3;
-    }
-
-    #login-section {
-      max-width: 300px;
-      margin: 4rem auto 2rem;
-      background: #222;
-      padding: 1rem;
-      border-radius: 10px;
-      display: block;
-    }
-
-    #sidebar {
+    .sidebar {
       position: fixed;
+      width: 200px;
+      height: 100%;
+      background: #1e1e1e;
       top: 0;
       left: 0;
-      width: 250px;
-      height: 100%;
-      background: #1a1a1a;
-      color: #fff;
-      padding: 1rem;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-      visibility: hidden;
-      opacity: 0;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s linear 0.3s;
-      z-index: 1000;
-      box-sizing: border-box;
+      padding-top: 20px;
+      border-right: 2px solid #ff69b4;
     }
-    #sidebar.open {
-      visibility: visible;
-      opacity: 1;
-      transform: translateX(0);
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    #sidebar h2 {
-      margin-top: 0;
-      color: #ff69b4;
-    }
-    #sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 1rem 0 0 0;
-    }
-    #sidebar ul li {
-      margin: 1rem 0;
-    }
-    #sidebar ul li a {
-      color: #fff;
+    .sidebar a {
+      display: block;
+      padding: 10px;
+      color: white;
       text-decoration: none;
-      cursor: pointer;
-      display: block;
-      padding: 0.3rem 0;
     }
-
-    #open-sidebar {
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      width: 40px;
-      height: 40px;
-      font-size: 1.5rem;
-      background: #ff69b4;
-      color: #111;
-      border: none;
-      border-radius: 6px;
-      z-index: 1001;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      user-select: none;
-    }
-    #open-sidebar span {
-      line-height: 40px;
-      display: block;
-      user-select: none;
-    }
-
-    #close-sidebar {
-      background: none;
-      color: #fff;
-      border: none;
-      font-size: 2rem;
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      cursor: pointer;
-    }
-
-    #login-message {
-      color: #f66;
-      margin-top: 0.5rem;
-      min-height: 1.2rem;
-    }
-
-    /* Settings popup overlay */
-    #settings-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #222;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #ff69b4aa;
-      width: 320px;
-      max-width: 90vw;
-      display: none;
-      z-index: 2000;
-      box-sizing: border-box;
-    }
-    #settings-popup h2 {
-      margin-top: 0;
-      color: #ff69b4;
-    }
-    #settings-popup label {
-      color: #aaa;
-      font-weight: bold;
-      display: block;
-      margin-top: 0.8rem;
-    }
-    #settings-popup button.close-settings {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #ff69b4;
-      color: #111;
-      border: none;
-      font-size: 1.2rem;
-      width: 30px;
-      height: 30px;
-      border-radius: 6px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0;
-      user-select: none;
-    }
-
-    /* Builder UI */
-    #builder-section {
-      background: #222;
-      border-radius: 12px;
-      padding: 1rem;
-      margin-top: 2rem;
-      display: none;
-    }
-    #builder-section h2 {
-      color: #ff69b4;
-      margin-top: 0;
-      margin-bottom: 1rem;
-    }
-    #builder-sections {
-      min-height: 150px;
-      border: 1px dashed #555;
-      padding: 1rem;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-      background: #1c1c1c;
-    }
-    .builder-section-item {
+    .sidebar a:hover {
       background: #333;
-      color: #eee;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      cursor: move;
-      user-select: none;
     }
-    #builder-controls {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+    .main-content {
+      margin-left: 210px;
+      padding: 20px;
     }
-    #builder-controls input[type=text], #builder-controls textarea {
-      flex-grow: 1;
-      margin: 0;
+    .section {
+      border: 1px dashed #ff69b4;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #1f1f1f;
     }
-    #save-target-select {
-      width: auto;
-      margin-right: 0.5rem;
-      background: #222;
-      border: 1px solid #555;
-      color: #eee;
+    #settingsPopup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      background: #1e1e1e;
+      padding: 20px;
+      border: 2px solid #ff69b4;
+      z-index: 999;
     }
-
-    /* Hide user select dropdown and "Save to all users" button if not Dylan */
-    .hidden {
-      display: none !important;
+    #settingsPopup textarea {
+      width: 100%;
+      height: 100px;
+      background: #111;
+      color: white;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <div id="sidebar" aria-label="Sidebar navigation">
-    <button id="close-sidebar" aria-label="Close sidebar">&times;</button>
-    <h2>Menu</h2>
-    <ul>
-      <li><a onclick="showDashboard()" tabindex="0">Dashboard</a></li>
-      <li><a onclick="showSettings()" tabindex="0">Settings</a></li>
-      <li><a href="#" tabindex="0">Submit Debt</a></li>
-      <li><a onclick="logout()" tabindex="0">Logout</a></li>
-    </ul>
+<div class="login-container active" id="loginContainer">
+  <div class="login-box">
+    <h2>Login to Fag Hub</h2>
+    <input type="text" id="username" placeholder="Username"/><br/>
+    <input type="password" id="password" placeholder="Password"/><br/>
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
   </div>
+</div>
 
-  <button id="open-sidebar" aria-label="Open sidebar"><span>&#9776;</span></button>
-
-  <!-- Login -->
-  <div id="login-section" role="region" aria-labelledby="login-title">
-    <h2 id="login-title">Login to Fag Hub</h2>
-    <input id="email" type="text" placeholder="Username" aria-label="Username" />
-    <input id="password" type="password" placeholder="Password" aria-label="Password" />
-    <button id="login-btn">Login</button>
-    <div id="login-message" role="alert" aria-live="polite"></div>
+<div class="dashboard" id="dashboard">
+  <div class="sidebar">
+    <a href="#" onclick="showPage('dashboardView')">Dashboard</a>
+    <a href="#" onclick="showSettings()">Settings</a>
+    <a href="#" onclick="showPageBuilder()" id="pageBuilderLink" style="display:none">Page Builder</a>
+    <a href="#" onclick="logout()">Logout</a>
   </div>
-
-  <!-- Dashboard -->
-  <div id="dashboard" style="display:none;" role="main">
-    <h1>Fag Hub Dashboard</h1>
-
-    <div class="section">
-      <div><span class="label">Name: </span><span id="display-name"></span></div>
-      <div><span class="label">Debt Price: </span><span id="debt-price">$100</span></div>
-      <div><span class="label">Fetishes: </span><span id="display-fetishes"></span></div>
-      <div><span class="label">Nicknames: </span><span id="display-nicknames"></span></div>
+  <div class="main-content">
+    <div id="dashboardView">
+      <h1>Welcome, <span id="displayName"></span></h1>
+      <p id="dailyMessage"></p>
+      <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
+      <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
+      <div class="section">
+        <h3>Chatbox</h3>
+        <div id="chatLog" style="background:#222; height:100px; overflow-y:auto; margin-bottom:5px;"></div>
+        <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()"/>
+      </div>
     </div>
 
-    <div class="section">
-      <h2>Daily Dom Message</h2>
-      <div id="daily-message"></div>
-    </div>
-
-    <div class="section" id="chatbox">
-      <h2>Dom Chat</h2>
-      <div class="chatlog" id="chatlog"></div>
-      <input id="chat-input" type="text" placeholder="Say something..." aria-label="Chat input" />
-      <button id="send-chat">Send</button>
-    </div>
-  </div>
-
-  <!-- Settings Popup -->
-  <div id="settings-popup" role="dialog" aria-modal="true" aria-labelledby="settings-title" aria-describedby="settings-desc">
-    <button class="close-settings" aria-label="Close settings popup">&times;</button>
-    <h2 id="settings-title">Settings</h2>
-    <div id="settings-desc" style="font-size:0.9rem; margin-bottom:1rem; color:#ccc;">Change your profile details below.</div>
-    <label for="setting-name">Name</label>
-    <input id="setting-name" type="text" />
-    <label for="setting-fetishes">Fetishes (comma separated)</label>
-    <input id="setting-fetishes" type="text" />
-    <label for="setting-nicknames">Nicknames (comma separated)</label>
-    <input id="setting-nicknames" type="text" />
-    <label for="setting-password">Change Password</label>
-    <input id="setting-password" type="password" placeholder="New password" />
-  </div>
-
-  <!-- Builder Section -->
-  <div id="builder-section" role="region" aria-label="In-website page builder">
-    <h2>Page Builder</h2>
-    <div id="builder-sections" aria-live="polite" aria-relevant="additions removals">
-      <!-- Sections will be draggable here -->
-    </div>
-    <div id="builder-controls">
-      <input type="text" id="new-section-text" placeholder="New section content" aria-label="New section content" />
-      <button id="add-section">Add Section</button>
-      <select id="save-target-select" aria-label="Select account to save changes" class="hidden">
-        <!-- Options dynamically populated -->
-      </select>
-      <button id="save-specific-account">Save to Specific Account</button>
-      <button id="save-all-users" class="hidden">Save to All Users</button>
-      <div style="color:#aaa; font-size:0.8rem; margin-left: 1rem;">(Alpha Dylan only can save to all users or choose other accounts)</div>
+    <div id="pageBuilder">
+      <h2>Page Builder</h2>
+      <div id="editableSections">
+        <div class="section" contenteditable="true">Editable Section 1</div>
+        <div class="section" contenteditable="true">Editable Section 2</div>
+      </div>
+      <button onclick="addSection()">Add Section</button>
+      <button onclick="saveChanges('all')">Save to All</button>
+      <button onclick="saveChanges('current')">Save to My Account</button>
     </div>
   </div>
+</div>
 
-  <script>
-    // User accounts and their data
-    const users = {
-      'Alpha Dylan': {
-        password: 'password1',
-        name: 'Alpha Dylan',
-        fetishes: ['bondage', 'humiliation'],
-        nicknames: ['Alpha', 'Boss'],
-        debtPrice: '$500',
-        dailyMessages: [
-          "Obey me without question.",
-          "Your debt grows, and so does your submission.",
-          "Serve me well and earn your freedom."
-        ],
-        passwordPlain: 'password1', // For simplicity; in real app, never store plaintext
-        sections: [
-          'Welcome to your dashboard.',
-          'Remember your place.'
-        ]
-      },
-      'Andrew': {
-        password: 'password2',
-        name: 'Andrew',
-        fetishes: ['foot worship', 'spanking'],
-        nicknames: ['Subby', 'Pet'],
-        debtPrice: '$100',
-        dailyMessages: [
-          "You belong to me.",
-          "Work harder for your master.",
-          "No mercy for disobedience."
-        ],
-        passwordPlain: 'password2',
-        sections: [
-          'This is your safe space.',
-          'Submit and obey.'
-        ]
+<div id="settingsPopup">
+  <h3>Edit Settings</h3>
+  <textarea id="editDebt" placeholder="Edit debt amount..."></textarea>
+  <textarea id="editProfile" placeholder="Edit profile..."></textarea>
+  <button onclick="saveSettings()">Save</button>
+  <button onclick="closeSettings()">Close</button>
+</div>
+
+<script>
+  const users = {
+    "Alpha Dylan": { password: "alpha", role: "alpha" },
+    "Andrew": { password: "sub", role: "sub" }
+  };
+
+  let currentUser = null;
+
+  function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    if (users[username] && users[username].password === password) {
+      currentUser = { username, role: users[username].role };
+      document.getElementById('loginContainer').classList.remove('active');
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('displayName').innerText = username;
+      showDailyMessage();
+      if (currentUser.role === 'alpha') {
+        document.getElementById('pageBuilderLink').style.display = 'block';
       }
-    };
-
-    let currentUser = null;
-    let currentSections = [];
-
-    // UI elements
-    const loginSection = document.getElementById('login-section');
-    const dashboard = document.getElementById('dashboard');
-    const openSidebarBtn = document.getElementById('open-sidebar');
-    const sidebar = document.getElementById('sidebar');
-    const closeSidebarBtn = document.getElementById('close-sidebar');
-    const loginBtn = document.getElementById('login-btn');
-    const loginMessage = document.getElementById('login-message');
-
-    const displayName = document.getElementById('display-name');
-    const displayFetishes = document.getElementById('display-fetishes');
-    const displayNicknames = document.getElementById('display-nicknames');
-    const debtPriceDisplay = document.getElementById('debt-price');
-    const dailyMessageDisplay = document.getElementById('daily-message');
-
-    const settingsPopup = document.getElementById('settings-popup');
-    const closeSettingsBtn = settingsPopup.querySelector('.close-settings');
-    const settingName = document.getElementById('setting-name');
-    const settingFetishes = document.getElementById('setting-fetishes');
-    const settingNicknames = document.getElementById('setting-nicknames');
-    const settingPassword = document.getElementById('setting-password');
-
-    const builderSection = document.getElementById('builder-section');
-    const builderSectionsContainer = document.getElementById('builder-sections');
-    const addSectionBtn = document.getElementById('add-section');
-    const newSectionText = document.getElementById('new-section-text');
-    const saveSpecificBtn = document.getElementById('save-specific-account');
-    const saveAllBtn = document.getElementById('save-all-users');
-    const saveTargetSelect = document.getElementById('save-target-select');
-
-    // Sidebar toggle
-    openSidebarBtn.addEventListener('click', () => {
-      sidebar.classList.add('open');
-      openSidebarBtn.style.display = 'none';
-    });
-    closeSidebarBtn.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      openSidebarBtn.style.display = 'flex';
-    });
-
-    // Login logic
-    loginBtn.addEventListener('click', () => {
-      const username = document.getElementById('email').value.trim();
-      const pass = document.getElementById('password').value;
-      if (users[username] && users[username].password === pass) {
-        currentUser = username;
-        loginSection.style.display = 'none';
-        dashboard.style.display = 'block';
-        openSidebarBtn.style.display = 'flex';
-        initDashboard();
-        if(currentUser === 'Alpha Dylan'){
-          builderSection.style.display = 'block';
-          saveAllBtn.classList.remove('hidden');
-          saveTargetSelect.classList.remove('hidden');
-          populateUserSelect();
-        } else {
-          builderSection.style.display = 'block';
-          saveAllBtn.classList.add('hidden');
-          saveTargetSelect.classList.add('hidden');
-          // Other users have no user select dropdown
-        }
-      } else {
-        loginMessage.textContent = 'Invalid username or password.';
-      }
-    });
-
-    // Logout function
-    function logout() {
-      currentUser = null;
-      loginSection.style.display = 'block';
-      dashboard.style.display = 'none';
-      builderSection.style.display = 'none';
-      openSidebarBtn.style.display = 'none';
-      sidebar.classList.remove('open');
-      document.getElementById('email').value = '';
-      document.getElementById('password').value = '';
-      loginMessage.textContent = '';
+    } else {
+      document.getElementById('loginError').innerText = "Invalid credentials";
     }
+  }
 
-    // Initialize dashboard
-    function initDashboard() {
-      const user = users[currentUser];
-      displayName.textContent = user.name;
-      displayFetishes.textContent = user.fetishes.join(', ');
-      displayNicknames.textContent = user.nicknames.join(', ');
-      debtPriceDisplay.textContent = user.debtPrice;
+  function logout() {
+    currentUser = null;
+    document.getElementById('loginContainer').classList.add('active');
+    document.getElementById('dashboard').classList.remove('active');
+  }
 
-      // Show a random daily message
-      const msgs = user.dailyMessages;
-      dailyMessageDisplay.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  function showDailyMessage() {
+    const messages = [
+      "You exist to serve, nothing more.",
+      "Your worth is defined by your obedience.",
+      "Today, you’ll prove your devotion again."
+    ];
+    document.getElementById('dailyMessage').innerText = messages[Math.floor(Math.random() * messages.length)];
+  }
 
-      // Load builder sections for current user
-      currentSections = [...user.sections];
-      renderBuilderSections();
+  function showSettings() {
+    document.getElementById('editDebt').value = document.getElementById('debtAmount').innerText;
+    document.getElementById('editProfile').value = document.getElementById('profileInfo').innerText;
+    document.getElementById('settingsPopup').style.display = 'block';
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsPopup').style.display = 'none';
+  }
+
+  function saveSettings() {
+    document.getElementById('debtAmount').innerText = document.getElementById('editDebt').value;
+    document.getElementById('profileInfo').innerText = document.getElementById('editProfile').value;
+    closeSettings();
+  }
+
+  function sendChat() {
+    const input = document.getElementById('chatInput');
+    const message = input.value;
+    if (message.trim()) {
+      const log = document.getElementById('chatLog');
+      const entry = document.createElement('div');
+      entry.innerText = `${currentUser.username}: ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+      input.value = '';
     }
+  }
 
-    // Show dashboard function
-    function showDashboard() {
-      settingsPopup.style.display = 'none';
-      dashboard.style.display = 'block';
-      sidebar.classList.remove('open');
-      openSidebarBtn.style.display = 'flex';
+  function showPage(pageId) {
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('pageBuilder').classList.remove('active');
+    document.getElementById(pageId).style.display = 'block';
+  }
+
+  function showPageBuilder() {
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('pageBuilder').classList.add('active');
+  }
+
+  function addSection() {
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.contentEditable = true;
+    div.innerText = 'New Editable Section';
+    document.getElementById('editableSections').appendChild(div);
+  }
+
+  function saveChanges(scope) {
+    const sections = document.querySelectorAll('#editableSections .section');
+    const content = Array.from(sections).map(s => s.innerHTML);
+    if (scope === 'all') {
+      localStorage.setItem('builder_all', JSON.stringify(content));
+      alert('Saved for all users.');
+    } else {
+      localStorage.setItem(`builder_${currentUser.username}`, JSON.stringify(content));
+      alert('Saved for this user.');
     }
+  }
 
-    // Show settings popup function
-    function showSettings() {
-      sidebar.classList.remove('open');
-      openSidebarBtn.style.display = 'flex';
-
-      const user = users[currentUser];
-      settingName.value = user.name;
-      settingFetishes.value = user.fetishes.join(', ');
-      settingNicknames.value = user.nicknames.join(', ');
-      settingPassword.value = '';
-
-      settingsPopup.style.display = 'block';
-    }
-
-    // Close settings popup
-    closeSettingsBtn.addEventListener('click', () => {
-      settingsPopup.style.display = 'none';
-    });
-
-    // Save settings changes
-    function saveSettings() {
-      const user = users[currentUser];
-      user.name = settingName.value.trim();
-      user.fetishes = settingFetishes.value.split(',').map(s => s.trim()).filter(Boolean);
-      user.nicknames = settingNicknames.value.split(',').map(s => s.trim()).filter(Boolean);
-
-      // Change password if entered
-      if (settingPassword.value.trim()) {
-        user.password = settingPassword.value;
-        user.passwordPlain = settingPassword.value;
-      }
-
-      // Update dashboard display if current user changed settings
-      if (currentUser === currentUser) {
-        displayName.textContent = user.name;
-        displayFetishes.textContent = user.fetishes.join(', ');
-        displayNicknames.textContent = user.nicknames.join(', ');
-      }
-      settingsPopup.style.display = 'none';
-    }
-
-    // When settings inputs change, auto save to user data and update dashboard live
-    settingName.addEventListener('input', () => {
-      users[currentUser].name = settingName.value.trim();
-      if(currentUser === currentUser) displayName.textContent = users[currentUser].name;
-    });
-    settingFetishes.addEventListener('input', () => {
-      users[currentUser].fetishes = settingFetishes.value.split(',').map(s => s.trim()).filter(Boolean);
-      if(currentUser === currentUser) displayFetishes.textContent = users[currentUser].fetishes.join(', ');
-    });
-    settingNicknames.addEventListener('input', () => {
-      users[currentUser].nicknames = settingNicknames.value.split(',').map(s => s.trim()).filter(Boolean);
-      if(currentUser === currentUser) displayNicknames.textContent = users[currentUser].nicknames.join(', ');
-    });
-
-    // Builder functions
-    function renderBuilderSections() {
-      builderSectionsContainer.innerHTML = '';
-      currentSections.forEach((sectionText, idx) => {
+  window.onload = function () {
+    const saved = localStorage.getItem(`builder_${currentUser?.username}`) ||
+                  localStorage.getItem('builder_all');
+    if (saved) {
+      const content = JSON.parse(saved);
+      const container = document.getElementById('editableSections');
+      container.innerHTML = '';
+      content.forEach(c => {
         const div = document.createElement('div');
-        div.classList.add('builder-section-item');
-        div.textContent = sectionText;
-        div.setAttribute('draggable', 'true');
-        div.dataset.index = idx;
-
-        div.addEventListener('dragstart', dragStart);
-        div.addEventListener('dragover', dragOver);
-        div.addEventListener('drop', drop);
-
-        builderSectionsContainer.appendChild(div);
+        div.className = 'section';
+        div.contentEditable = true;
+        div.innerHTML = c;
+        container.appendChild(div);
       });
     }
+  };
+</script>
 
-    let draggedIndex = null;
-
-    function dragStart(e) {
-      draggedIndex = e.target.dataset.index;
-      e.dataTransfer.effectAllowed = 'move';
-    }
-
-    function dragOver(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    }
-
-    function drop(e) {
-      e.preventDefault();
-      const targetIndex = e.target.dataset.index;
-      if (draggedIndex === null || targetIndex === undefined) return;
-      const draggedItem = currentSections[draggedIndex];
-      currentSections.splice(draggedIndex, 1);
-      currentSections.splice(targetIndex, 0, draggedItem);
-      renderBuilderSections();
-    }
-
-    // Add new section button
-    addSectionBtn.addEventListener('click', () => {
-      const text = newSectionText.value.trim();
-      if(text) {
-        currentSections.push(text);
-        newSectionText.value = '';
-        renderBuilderSections();
-      }
-    });
-
-    // Populate user select dropdown for Dylan only
-    function populateUserSelect() {
-      saveTargetSelect.innerHTML = '';
-      Object.keys(users).forEach(username => {
-        const option = document.createElement('option');
-        option.value = username;
-        option.textContent = username;
-        saveTargetSelect.appendChild(option);
-      });
-    }
-
-    // Save to specific account
-    saveSpecificBtn.addEventListener('click', () => {
-      if (currentUser === 'Alpha Dylan') {
-        // Dylan can pick any user to save changes to
-        const targetUser = saveTargetSelect.value;
-        if(targetUser && users[targetUser]){
-          users[targetUser].sections = [...currentSections];
-          alert(`Changes saved to ${targetUser}'s page.`);
-        }
-      } else {
-        // Other users save only to their own account
-        users[currentUser].sections = [...currentSections];
-        alert('Changes saved to your page.');
-      }
-    });
-
-    // Save to all users (Alpha Dylan only)
-    saveAllBtn.addEventListener('click', () => {
-      if (currentUser !== 'Alpha Dylan') return;
-      Object.keys(users).forEach(username => {
-        users[username].sections = [...currentSections];
-      });
-      alert('Changes saved to all users!');
-    });
-
-    // Chat box logic
-    const chatInput = document.getElementById('chat-input');
-    const chatLog = document.getElementById('chatlog');
-    document.getElementById('send-chat').addEventListener('click', () => {
-      const msg = chatInput.value.trim();
-      if(msg){
-        const userMsgDiv = document.createElement('div');
-        userMsgDiv.textContent = currentUser + ': ' + msg;
-        chatLog.appendChild(userMsgDiv);
-        chatInput.value = '';
-        chatLog.scrollTop = chatLog.scrollHeight;
-
-        // Simple AI dom response
-        const domResponses = [
-          "Good boy.",
-          "You will obey me.",
-          "Earn your submission.",
-          "Don't make me punish you.",
-          "I control you."
-        ];
-        setTimeout(() => {
-          const domMsgDiv = document.createElement('div');
-          domMsgDiv.textContent = "Dom: " + domResponses[Math.floor(Math.random()*domResponses.length)];
-          chatLog.appendChild(domMsgDiv);
-          chatLog.scrollTop = chatLog.scrollHeight;
-        }, 1000);
-      }
-    });
-
-  </script>
 </body>
 </html>
