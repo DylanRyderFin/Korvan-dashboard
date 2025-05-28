@@ -26,26 +26,11 @@
       font-weight: bold;
       color: #aaa;
     }
-    input, button, select {
+    input, button {
       padding: 0.5rem;
       font-size: 1rem;
-      margin-bottom: 0.5rem;
-      width: 100%;
     }
-    #chatbox {
-      border-top: 1px solid #444;
-      padding-top: 1rem;
-    }
-    .chatlog {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      background: #222;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    .chatlog div { margin: 0.5rem 0; }
+
     #login-section {
       max-width: 300px;
       margin: 2rem auto;
@@ -58,10 +43,7 @@
       width: 100%;
       margin-bottom: 0.5rem;
     }
-    #login-message {
-      color: #f66;
-      margin-top: 0.5rem;
-    }
+
     #sidebar {
       position: fixed;
       top: 0;
@@ -100,19 +82,23 @@
       text-decoration: none;
       cursor: pointer;
     }
+
     #open-sidebar {
+      display: none;
       position: fixed;
       top: 1rem;
       left: 1rem;
-      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
       background: #ff69b4;
       color: #111;
       border: none;
-      padding: 0.5rem;
       border-radius: 6px;
       z-index: 1001;
       cursor: pointer;
+      font-size: 1.5rem;
     }
+
     #close-sidebar {
       background: none;
       color: #fff;
@@ -123,137 +109,222 @@
       right: 15px;
       cursor: pointer;
     }
+
+    #login-message {
+      color: #f66;
+      margin-top: 0.5rem;
+    }
+
+    #settings-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 90%;
+      max-width: 400px;
+      transform: translate(-50%, -50%);
+      background: #222;
+      padding: 1.5rem;
+      border-radius: 12px;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
+    }
+    #settings-popup h3 {
+      color: #ff69b4;
+      margin-top: 0;
+    }
+    #settings-popup input {
+      width: 100%;
+      margin-bottom: 1rem;
+      background: #333;
+      border: none;
+      color: #fff;
+    }
+    #settings-popup button {
+      background: #ff69b4;
+      color: #111;
+      border: none;
+      padding: 0.5rem;
+      width: 100%;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+    }
+    #close-settings {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff69b4;
+      color: #111;
+      border: none;
+      font-size: 1.2rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .chatlog {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      background: #222;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .chatlog div { margin: 0.5rem 0; }
   </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div id="sidebar">
-  <button id="close-sidebar">&times;</button>
-  <h2>Menu</h2>
-  <ul>
-    <li><a onclick="showDashboard()">Dashboard</a></li>
-    <li><a onclick="showSettings()">Settings</a></li>
-    <li><a href="#">Submit Debt</a></li>
-    <li><a onclick="logout()">Logout</a></li>
-  </ul>
-</div>
-<button id="open-sidebar" style="display:none;">&#9776;</button>
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <button id="close-sidebar">&times;</button>
+    <h2>Menu</h2>
+    <ul>
+      <li><a onclick="showDashboard()">Dashboard</a></li>
+      <li><a onclick="showSettings()">Settings</a></li>
+      <li><a href="#">Submit Debt</a></li>
+      <li><a onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+  <button id="open-sidebar">☰</button>
 
-<!-- Login -->
-<div id="login-section">
-  <h2>Login to Fag Hub</h2>
-  <input id="email" type="text" placeholder="Username" />
-  <input id="password" type="password" placeholder="Password" />
-  <button id="login-btn">Login</button>
-  <div id="login-message"></div>
-</div>
-
-<!-- Dashboard -->
-<div id="dashboard" style="display:none;">
-  <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
-
-  <div class="section">
-    <div class="label">Debt Price:</div>
-    <div id="debt-amount">$124.80</div>
+  <!-- Settings Popup -->
+  <div id="settings-popup">
+    <button id="close-settings">×</button>
+    <h3>Settings</h3>
+    <label>Name: <input id="settings-name" /></label>
+    <label>Nicknames: <input id="settings-nicknames" /></label>
+    <label>Fetishes: <input id="settings-fetishes" /></label>
+    <label>Change Password: <input id="settings-password" type="password" /></label>
+    <button onclick="saveSettings()">Save</button>
   </div>
 
-  <div class="section">
-    <div class="label">Daily Message:</div>
-    <div id="daily-message"><em>—loading—</em></div>
+  <!-- Login -->
+  <div id="login-section">
+    <h2>Login to Fag Hub</h2>
+    <input id="email" type="text" placeholder="Username" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="login-btn">Login</button>
+    <div id="login-message"></div>
   </div>
 
-  <div class="section">
-    <div class="label">Profile:</div>
-    <p><strong>Name:</strong> <span id="profile-name">User</span></p>
-    <p><strong>Nicknames:</strong> <span id="profile-nicknames">puppy, f@g</span></p>
-    <p><strong>Fetishes:</strong> <span id="profile-fetishes">Edging, mind control, gooning, muscle worship, manipulation…</span></p>
+  <!-- Dashboard -->
+  <div id="dashboard" style="display:none;">
+    <h1>Welcome, <span id="display-name">User</span> 🖤</h1>
+
+    <div class="section">
+      <div class="label">Debt Price:</div>
+      <div id="debt-amount">$124.80</div>
+    </div>
+
+    <div class="section">
+      <div class="label">Daily Message:</div>
+      <div id="daily-message"><em>—loading—</em></div>
+    </div>
+
+    <div class="section">
+      <div class="label">Profile:</div>
+      <p><strong>Name:</strong> <span id="profile-name">User</span></p>
+      <p><strong>Nicknames:</strong> <span id="profile-nicknames">puppy, f@g</span></p>
+      <p><strong>Fetishes:</strong> <span id="profile-fetishes">Edging, mind control, gooning, muscle worship, manipulation…</span></p>
+    </div>
+
+    <div class="section" id="chatbox">
+      <div class="label">Dom AI Chat:</div>
+      <div class="chatlog" id="chat-log"></div>
+      <input id="user-input" placeholder="Type to your dom..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
   </div>
-
-  <div class="section" id="chatbox">
-    <div class="label">Dom AI Chat:</div>
-    <div class="chatlog" id="chat-log"></div>
-    <input id="user-input" placeholder="Type to your dom..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
-
-  <!-- Dom Control Panel -->
-  <div id="manage-sub" class="section" style="display:none;">
-    <h2 style="color:#ff69b4;">Manage Sub</h2>
-    <label for="sub-selector" class="label">Select Sub:</label>
-    <select id="sub-selector">
-      <option value="Andrew">Andrew</option>
-    </select>
-
-    <label class="label">Nicknames:</label>
-    <input id="edit-nicknames" type="text" placeholder="e.g. puppy, f@g" />
-
-    <label class="label">Fetishes:</label>
-    <input id="edit-fetishes" type="text" placeholder="e.g. edging, gooning..." />
-
-    <label class="label">Reset Password:</label>
-    <input id="edit-password" type="password" placeholder="New password" />
-
-    <button onclick="saveSubSettings()" style="background:#ff69b4; color:#111; border:none; border-radius:6px;">
-      Save Changes
-    </button>
-  </div>
-</div>
 
 <script>
   const users = [
-    {
-      username: "Alpha Dylan",
-      password: "Ohana2311!",
-      name: "Alpha Dylan",
-      isDom: true
-    },
-    {
-      username: "Andrew",
-      password: "Puppy",
-      name: "Andrew",
-      nicknames: "puppy, f@g",
-      fetishes: "Edging, mind control, gooning, muscle worship, manipulation…",
-      isDom: false
-    }
+    { username: "Alpha Dylan", password: "Ohana2311!" },
+    { username: "Andrew", password: "Puppy" }
   ];
+  let currentUser = null;
 
-  let loggedInUser = null;
-
-  function updateDashboard(name, nicknames, fetishes) {
+  function updateDashboard(name) {
     document.getElementById('display-name').textContent = name;
     document.getElementById('profile-name').textContent = name;
-    document.getElementById('profile-nicknames').textContent = nicknames || '';
-    document.getElementById('profile-fetishes').textContent = fetishes || '';
-    document.getElementById('daily-message').textContent = getRandomMessage();
-  }
-
-  function getRandomMessage() {
     const messages = [
       "You're only useful on your knees, aren't you, puppy?",
       "Every breath you take is mine. Every edge? My control.",
       "You don’t even think anymore. Just obey, dumb muscle toy."
     ];
-    return messages[Math.floor(Math.random() * messages.length)];
+    document.getElementById("daily-message").textContent = messages[Math.floor(Math.random() * messages.length)];
   }
 
   function showDashboard() {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('open-sidebar').style.display = 'block';
-    document.getElementById('sidebar').classList.remove('open');
+    loginSection.style.display = 'none';
+    dashboard.style.display = 'block';
+    openSidebarBtn.style.display = 'block';
+    sidebar.classList.remove('open');
   }
 
-  function logout() {
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('open-sidebar').style.display = 'none';
-    document.getElementById('manage-sub').style.display = 'none';
-    document.getElementById('login-message').textContent = '';
+  function showLogin() {
+    loginSection.style.display = 'block';
+    dashboard.style.display = 'none';
+    openSidebarBtn.style.display = 'none';
+    sidebar.classList.remove('open');
+    loginMessage.textContent = '';
   }
 
   function showSettings() {
-    alert("Settings page coming soon.");
+    document.getElementById('settings-popup').style.display = 'block';
+    document.getElementById('settings-name').value = document.getElementById('profile-name').textContent;
+    document.getElementById('settings-nicknames').value = document.getElementById('profile-nicknames').textContent;
+    document.getElementById('settings-fetishes').value = document.getElementById('profile-fetishes').textContent;
+  }
+
+  function saveSettings() {
+    const newName = document.getElementById('settings-name').value;
+    const newNicknames = document.getElementById('settings-nicknames').value;
+    const newFetishes = document.getElementById('settings-fetishes').value;
+    const newPassword = document.getElementById('settings-password').value;
+
+    document.getElementById('display-name').textContent = newName;
+    document.getElementById('profile-name').textContent = newName;
+    document.getElementById('profile-nicknames').textContent = newNicknames;
+    document.getElementById('profile-fetishes').textContent = newFetishes;
+
+    if (newPassword && currentUser) {
+      currentUser.password = newPassword;
+    }
+
+    document.getElementById('settings-popup').style.display = 'none';
+  }
+
+  document.getElementById('login-btn').addEventListener('click', () => {
+    const usernameInput = document.getElementById('email').value.trim();
+    const passwordInput = document.getElementById('password').value;
+    const user = users.find(u => u.username === usernameInput && u.password === passwordInput);
+
+    if (user) {
+      currentUser = user;
+      updateDashboard(user.username);
+      showDashboard();
+    } else {
+      loginMessage.textContent = "Invalid username or password.";
+    }
+  });
+
+  document.getElementById('open-sidebar').onclick = () => {
+    sidebar.classList.add('open');
+    openSidebarBtn.style.display = 'none';
+  };
+  document.getElementById('close-sidebar').onclick = () => {
+    sidebar.classList.remove('open');
+    openSidebarBtn.style.display = 'block';
+  };
+  document.getElementById('close-settings').onclick = () => {
+    document.getElementById('settings-popup').style.display = 'none';
+  };
+
+  function logout() {
+    showLogin();
   }
 
   function sendMessage() {
@@ -266,45 +337,11 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  function saveSubSettings() {
-    const subName = document.getElementById('sub-selector').value;
-    const nick = document.getElementById('edit-nicknames').value.trim();
-    const fet = document.getElementById('edit-fetishes').value.trim();
-    const pass = document.getElementById('edit-password').value.trim();
-    const target = users.find(u => u.username === subName);
-    if (target) {
-      if (nick) target.nicknames = nick;
-      if (fet) target.fetishes = fet;
-      if (pass) target.password = pass;
-      updateDashboard(target.name, target.nicknames, target.fetishes);
-      alert("Sub settings updated.");
-    }
-  }
-
-  document.getElementById('login-btn').addEventListener('click', () => {
-    const usernameInput = document.getElementById('email').value.trim();
-    const passwordInput = document.getElementById('password').value;
-    const user = users.find(u => u.username === usernameInput && u.password === passwordInput);
-
-    if (user) {
-      loggedInUser = user;
-      showDashboard();
-      const target = user.isDom ? users.find(u => u.username === "Andrew") : user;
-      updateDashboard(target.name, target.nicknames, target.fetishes);
-      if (user.isDom) document.getElementById('manage-sub').style.display = 'block';
-    } else {
-      document.getElementById('login-message').textContent = "Invalid username or password.";
-    }
-  });
-
-  document.getElementById('open-sidebar').onclick = () => {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('open-sidebar').style.display = 'none';
-  };
-  document.getElementById('close-sidebar').onclick = () => {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('open-sidebar').style.display = 'block';
-  };
+  const sidebar = document.getElementById('sidebar');
+  const openSidebarBtn = document.getElementById('open-sidebar');
+  const loginSection = document.getElementById('login-section');
+  const dashboard = document.getElementById('dashboard');
+  const loginMessage = document.getElementById('login-message');
 </script>
 </body>
 </html>
