@@ -3,261 +3,215 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fag Hub</title>
+  <title>Fag Hub Dashboard</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      background: #121212;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
       color: white;
     }
-    .login-container, .dashboard, #pageBuilder {
+
+    .login-container, .dashboard {
+      display: none;
+      padding: 20px;
+    }
+
+    .login-container.active, .dashboard.active {
+      display: block;
+    }
+
+    .sidebar {
+      height: 100vh;
+      width: 200px;
+      position: fixed;
+      background-color: #1e1e1e;
+      padding-top: 20px;
       display: none;
     }
-    .login-container.active, .dashboard.active, #pageBuilder.active {
+
+    .sidebar.active {
       display: block;
     }
-    .login-box {
-      max-width: 300px;
-      margin: 100px auto;
-      padding: 20px;
-      background: #1e1e1e;
-      border: 2px solid #ff69b4;
-      border-radius: 10px;
-      text-align: center;
-    }
-    input {
-      padding: 8px;
-      margin: 5px 0;
-      width: 90%;
-    }
-    button {
-      padding: 8px 12px;
-      background: #ff69b4;
-      border: none;
-      color: white;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .sidebar {
-      position: fixed;
-      width: 200px;
-      height: 100%;
-      background: #1e1e1e;
-      top: 0;
-      left: 0;
-      padding-top: 20px;
-      border-right: 2px solid #ff69b4;
-    }
+
     .sidebar a {
       display: block;
-      padding: 10px;
-      color: white;
+      padding: 10px 15px;
+      color: #ff69b4;
       text-decoration: none;
     }
+
     .sidebar a:hover {
-      background: #333;
+      background-color: #333;
     }
-    .main-content {
-      margin-left: 210px;
+
+    #main {
+      margin-left: 200px;
       padding: 20px;
     }
-    .section {
-      border: 1px dashed #ff69b4;
-      padding: 10px;
-      margin-bottom: 10px;
-      background: #1f1f1f;
+
+    .message, .profile, .chatbox, .settings-popup {
+      margin-bottom: 20px;
+      background-color: #1e1e1e;
+      padding: 15px;
+      border-radius: 5px;
     }
-    #settingsPopup {
+
+    .chat-log {
+      max-height: 150px;
+      overflow-y: auto;
+      background-color: #2c2c2c;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .settings-popup {
       display: none;
       position: fixed;
       top: 20%;
-      left: 50%;
-      transform: translate(-50%, -20%);
-      background: #1e1e1e;
-      padding: 20px;
-      border: 2px solid #ff69b4;
-      z-index: 999;
+      left: 30%;
+      width: 40%;
+      background-color: #1e1e1e;
+      z-index: 1000;
+      border: 1px solid #ff69b4;
     }
-    #settingsPopup textarea {
+
+    .settings-popup textarea {
       width: 100%;
       height: 100px;
-      background: #111;
+      background-color: #2c2c2c;
       color: white;
-      margin-bottom: 10px;
+      border: none;
+      padding: 10px;
+    }
+
+    .canvas-builder {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .canvas-builder.active {
+      display: block;
     }
   </style>
 </head>
 <body>
 
-<div class="login-container active" id="loginContainer">
-  <div class="login-box">
+  <div class="login-container active" id="loginContainer">
     <h2>Login to Fag Hub</h2>
-    <input type="text" id="username" placeholder="Username"/><br/>
-    <input type="password" id="password" placeholder="Password"/><br/>
+    <input type="text" id="username" placeholder="Username"/><br/><br/>
+    <input type="password" id="password" placeholder="Password"/><br/><br/>
     <button onclick="login()">Login</button>
-    <p id="loginError" style="color:red;"></p>
   </div>
-</div>
 
-<div class="dashboard" id="dashboard">
-  <div class="sidebar">
-    <a href="#" onclick="showPage('dashboardView')">Dashboard</a>
-    <a href="#" onclick="showSettings()">Settings</a>
-    <a href="#" onclick="showPageBuilder()" id="pageBuilderLink" style="display:none">Page Builder</a>
-    <a href="#" onclick="logout()">Logout</a>
-  </div>
-  <div class="main-content">
-    <div id="dashboardView">
-      <h1>Welcome, <span id="displayName"></span></h1>
-      <p id="dailyMessage"></p>
-      <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
-      <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
-      <div class="section">
-        <h3>Chatbox</h3>
-        <div id="chatLog" style="background:#222; height:100px; overflow-y:auto; margin-bottom:5px;"></div>
-        <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()"/>
-      </div>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div id="main" class="dashboard">
+    <div class="message" id="dailyMessage"></div>
+    <div class="profile" id="profile"></div>
+    <div class="chatbox">
+      <h3>Chat</h3>
+      <div class="chat-log" id="chatLog"></div>
+      <input type="text" id="chatInput" placeholder="Say something..."/>
+      <button onclick="sendMessage()">Send</button>
     </div>
-
-    <div id="pageBuilder">
-      <h2>Page Builder</h2>
-      <div id="editableSections">
-        <div class="section" contenteditable="true">Editable Section 1</div>
-        <div class="section" contenteditable="true">Editable Section 2</div>
-      </div>
-      <button onclick="addSection()">Add Section</button>
-      <button onclick="saveChanges('all')">Save to All</button>
-      <button onclick="saveChanges('current')">Save to My Account</button>
+    <div class="settings-popup" id="settingsPopup">
+      <h3>Edit Settings</h3>
+      <textarea id="settingsEditor"></textarea><br/>
+      <button onclick="saveSettings()">Save to Specific Account</button>
+      <button onclick="saveSettings(true)">Save to All Accounts</button>
+      <button onclick="closeSettings()">Close</button>
+    </div>
+    <div class="canvas-builder" id="builderCanvas">
+      <h3>Page Builder</h3>
+      <div id="builderArea" contenteditable="true" style="background:#2c2c2c;padding:10px;border-radius:5px;">Edit this live area...</div>
     </div>
   </div>
-</div>
 
-<div id="settingsPopup">
-  <h3>Edit Settings</h3>
-  <textarea id="editDebt" placeholder="Edit debt amount..."></textarea>
-  <textarea id="editProfile" placeholder="Edit profile..."></textarea>
-  <button onclick="saveSettings()">Save</button>
-  <button onclick="closeSettings()">Close</button>
-</div>
+  <script>
+    const users = {
+      "Alpha Dylan": { password: "alphapass", debt: "$0", profile: "Alpha Master", role: "alpha" },
+      "Andrew": { password: "andrewpass", debt: "$500", profile: "Good sub", role: "sub" }
+    };
 
-<script>
-  const users = {
-    "Alpha Dylan": { password: "alpha", role: "alpha" },
-    "Andrew": { password: "sub", role: "sub" }
-  };
+    let currentUser = null;
 
-  let currentUser = null;
-
-  function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    if (users[username] && users[username].password === password) {
-      currentUser = { username, role: users[username].role };
-      document.getElementById('loginContainer').classList.remove('active');
-      document.getElementById('dashboard').classList.add('active');
-      document.getElementById('displayName').innerText = username;
-      showDailyMessage();
-      if (currentUser.role === 'alpha') {
-        document.getElementById('pageBuilderLink').style.display = 'block';
-      }
-    } else {
-      document.getElementById('loginError').innerText = "Invalid credentials";
-    }
-  }
-
-  function logout() {
-    currentUser = null;
-    document.getElementById('loginContainer').classList.add('active');
-    document.getElementById('dashboard').classList.remove('active');
-  }
-
-  function showDailyMessage() {
-    const messages = [
-      "You exist to serve, nothing more.",
-      "Your worth is defined by your obedience.",
-      "Today, you’ll prove your devotion again."
+    const dailyMessages = [
+      "You exist to serve your Alpha.",
+      "Remember your place today.",
+      "Obedience is your only purpose."
     ];
-    document.getElementById('dailyMessage').innerText = messages[Math.floor(Math.random() * messages.length)];
-  }
 
-  function showSettings() {
-    document.getElementById('editDebt').value = document.getElementById('debtAmount').innerText;
-    document.getElementById('editProfile').value = document.getElementById('profileInfo').innerText;
-    document.getElementById('settingsPopup').style.display = 'block';
-  }
-
-  function closeSettings() {
-    document.getElementById('settingsPopup').style.display = 'none';
-  }
-
-  function saveSettings() {
-    document.getElementById('debtAmount').innerText = document.getElementById('editDebt').value;
-    document.getElementById('profileInfo').innerText = document.getElementById('editProfile').value;
-    closeSettings();
-  }
-
-  function sendChat() {
-    const input = document.getElementById('chatInput');
-    const message = input.value;
-    if (message.trim()) {
-      const log = document.getElementById('chatLog');
-      const entry = document.createElement('div');
-      entry.innerText = `${currentUser.username}: ${message}`;
-      log.appendChild(entry);
-      log.scrollTop = log.scrollHeight;
-      input.value = '';
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      if (users[username] && users[username].password === password) {
+        currentUser = username;
+        showDashboard();
+      } else {
+        alert("Invalid credentials.");
+      }
     }
-  }
 
-  function showPage(pageId) {
-    document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById('pageBuilder').classList.remove('active');
-    document.getElementById(pageId).style.display = 'block';
-  }
+    function showDashboard() {
+      document.getElementById("loginContainer").classList.remove("active");
+      document.querySelector(".dashboard").classList.add("active");
+      document.getElementById("sidebar").classList.add("active");
+      document.getElementById("dailyMessage").innerText = dailyMessages[Math.floor(Math.random() * dailyMessages.length)];
+      document.getElementById("profile").innerHTML = `<strong>Debt:</strong> ${users[currentUser].debt}<br/><strong>Profile:</strong> ${users[currentUser].profile}`;
 
-  function showPageBuilder() {
-    document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById('pageBuilder').classList.add('active');
-  }
-
-  function addSection() {
-    const div = document.createElement('div');
-    div.className = 'section';
-    div.contentEditable = true;
-    div.innerText = 'New Editable Section';
-    document.getElementById('editableSections').appendChild(div);
-  }
-
-  function saveChanges(scope) {
-    const sections = document.querySelectorAll('#editableSections .section');
-    const content = Array.from(sections).map(s => s.innerHTML);
-    if (scope === 'all') {
-      localStorage.setItem('builder_all', JSON.stringify(content));
-      alert('Saved for all users.');
-    } else {
-      localStorage.setItem(`builder_${currentUser.username}`, JSON.stringify(content));
-      alert('Saved for this user.');
+      renderSidebar();
     }
-  }
 
-  window.onload = function () {
-    const saved = localStorage.getItem(`builder_${currentUser?.username}`) ||
-                  localStorage.getItem('builder_all');
-    if (saved) {
-      const content = JSON.parse(saved);
-      const container = document.getElementById('editableSections');
-      container.innerHTML = '';
-      content.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'section';
-        div.contentEditable = true;
-        div.innerHTML = c;
-        container.appendChild(div);
-      });
+    function renderSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.innerHTML = `
+        <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+        <a href="#" onclick="openSettings()">Settings</a>
+        <a href="#" onclick="alert('Feature coming soon.')">Submit Debt</a>
+        ${users[currentUser].role === "alpha" ? '<a href="#" onclick="toggleBuilder()">Page Builder</a>' : ''}
+        <a href="#" onclick="logout()">Logout</a>
+      `;
     }
-  };
-</script>
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const log = document.getElementById("chatLog");
+      const msg = input.value.trim();
+      if (msg) {
+        const reply = users[currentUser].role === "alpha"
+          ? "Sub, your message is received."
+          : "Yes, Sir. I'll remember that.";
+        log.innerHTML += `<div><strong>You:</strong> ${msg}</div>`;
+        log.innerHTML += `<div><strong>DomBot:</strong> ${reply}</div>`;
+        input.value = "";
+        log.scrollTop = log.scrollHeight;
+      }
+    }
+
+    function openSettings() {
+      document.getElementById("settingsPopup").style.display = "block";
+      document.getElementById("settingsEditor").value = "Live editable settings for this session.";
+    }
+
+    function closeSettings() {
+      document.getElementById("settingsPopup").style.display = "none";
+    }
+
+    function saveSettings(toAll = false) {
+      alert(toAll ? "Saved to all accounts." : `Saved to ${currentUser}'s account.`);
+      closeSettings();
+    }
+
+    function toggleBuilder() {
+      const builder = document.getElementById("builderCanvas");
+      builder.classList.toggle("active");
+    }
+
+    function logout() {
+      location.reload();
+    }
+  </script>
 
 </body>
 </html>
