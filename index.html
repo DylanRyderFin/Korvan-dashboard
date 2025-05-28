@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fag Hub</title>
   <style>
     body {
@@ -26,14 +26,10 @@
       border-radius: 10px;
       text-align: center;
     }
-    input, textarea {
+    input {
       padding: 8px;
       margin: 5px 0;
       width: 90%;
-      background: #111;
-      color: white;
-      border: 1px solid #ff69b4;
-      border-radius: 5px;
     }
     button {
       padding: 8px 12px;
@@ -42,7 +38,6 @@
       color: white;
       cursor: pointer;
       margin-top: 10px;
-      border-radius: 5px;
     }
     .sidebar {
       position: fixed;
@@ -85,37 +80,33 @@
       z-index: 999;
       width: 300px;
     }
-    #settingsPopup textarea, #settingsPopup input {
+    #settingsPopup textarea {
       width: 100%;
+      height: 100px;
+      background: #111;
+      color: white;
       margin-bottom: 10px;
     }
-    #chatInput[disabled] {
-      background: #444;
-      cursor: not-allowed;
-      color: #aaa;
+    #chatLog, #chatGPTLog {
+      background:#222;
+      height:100px;
+      overflow-y:auto;
+      margin-bottom:5px;
+      padding: 5px;
+      white-space: pre-wrap;
+      border-radius: 4px;
     }
-    #chatContainer {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
+    #chatInput, #chatGPTInput {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      background: #111;
+      color: white;
+      border: none;
+      border-radius: 4px;
     }
     #chatSection, #chatGPTSection {
-      flex: 1;
-      min-width: 300px;
-      background: #222;
-      padding: 10px;
-      border-radius: 8px;
-      height: 250px;
-      display: flex;
-      flex-direction: column;
-    }
-    #chatLog, #chatGPTLog {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 5px;
-      background: #111;
-      padding: 10px;
-      border-radius: 6px;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -145,21 +136,18 @@
       <div class="section" id="debtSection">Debt Price: <span id="debtAmount">$1000</span></div>
       <div class="section" id="profileSection">Profile: <span id="profileInfo">Obedient sub with growing debt</span></div>
 
-      <!-- Chat containers side by side -->
-      <div id="chatContainer">
-        <!-- Custom AI chatbox - visible to all -->
-        <div class="section" id="chatSection">
-          <h3>Custom AI Chatbox</h3>
-          <div id="chatLog"></div>
-          <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
-        </div>
+      <!-- Custom AI Chatbox for all users -->
+      <div class="section" id="chatSection" style="display:none;">
+        <h3>Custom AI Chatbox</h3>
+        <div id="chatLog"></div>
+        <input type="text" id="chatInput" placeholder="Say something to your dom..." onkeypress="if(event.key==='Enter')sendChat()" />
+      </div>
 
-        <!-- ChatGPT box - Dylan only -->
-        <div class="section" id="chatGPTSection" style="display:none;">
-          <h3>ChatGPT</h3>
-          <div id="chatGPTLog"></div>
-          <input type="text" id="chatGPTInput" placeholder="Ask ChatGPT..." onkeypress="if(event.key==='Enter')sendChatGPT()" />
-        </div>
+      <!-- ChatGPT Box only for Dylan -->
+      <div class="section" id="chatGPTSection" style="display:none;">
+        <h3>ChatGPT</h3>
+        <div id="chatGPTLog"></div>
+        <input type="text" id="chatGPTInput" placeholder="Ask ChatGPT..." onkeypress="if(event.key==='Enter')sendChatGPT()" />
       </div>
     </div>
 
@@ -178,21 +166,23 @@
 
 <div id="settingsPopup">
   <h3>Edit Settings</h3>
-  <!-- Removed debt editing -->
+  <!-- Debt editing removed -->
+  <!-- Only profile and password -->
   <textarea id="editProfile" placeholder="Edit profile..."></textarea>
-  <input type="password" id="editPassword" placeholder="Change password..."/>
+  <input type="password" id="editPassword" placeholder="Change password (leave blank to keep)" />
   <button onclick="saveSettings()">Save</button>
   <button onclick="closeSettings()">Close</button>
 </div>
 
 <script>
   const users = {
-    "Alpha Dylan": { password: "alpha", role: "alpha", profile: "Obedient sub with growing debt" },
-    "Andrew": { password: "sub", role: "sub", profile: "Obedient sub with growing debt" }
+    "Alpha Dylan": { password: "alpha", role: "alpha" },
+    "Andrew": { password: "sub", role: "sub" }
   };
 
   let currentUser = null;
 
+  // LOGIN FUNCTION
   function login() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
@@ -204,11 +194,14 @@
       showDailyMessage();
 
       // Show chatbox (custom AI) for all users
-      document.getElementById('chatSection').style.display = 'flex';
+      document.getElementById('chatSection').style.display = 'block';
 
-      // Show ChatGPT only for Dylan
+      // Load custom chat for current user
+      loadChat();
+
+      // Show ChatGPT and Page Builder only for Dylan
       if (currentUser.username === 'Alpha Dylan') {
-        document.getElementById('chatGPTSection').style.display = 'flex';
+        document.getElementById('chatGPTSection').style.display = 'block';
         document.getElementById('pageBuilderLink').style.display = 'block';
       } else {
         document.getElementById('chatGPTSection').style.display = 'none';
@@ -216,21 +209,29 @@
       }
 
       showPage('dashboardView');
+      clearLoginError();
     } else {
       document.getElementById('loginError').innerText = "Invalid credentials";
     }
   }
 
+  function clearLoginError() {
+    document.getElementById('loginError').innerText = '';
+  }
+
+  // LOGOUT FUNCTION
   function logout() {
     currentUser = null;
     document.getElementById('loginContainer').classList.add('active');
     document.getElementById('dashboard').classList.remove('active');
-    document.getElementById('pageBuilder').style.display = 'none';
-    document.getElementById('pageBuilderLink').style.display = 'none';
-    document.getElementById('chatGPTSection').style.display = 'none';
-    document.getElementById('chatSection').style.display = 'none';
+    // Reset chatboxes
+    document.getElementById('chatLog').innerHTML = '';
+    document.getElementById('chatGPTLog').innerHTML = '';
+    document.getElementById('chatInput').value = '';
+    document.getElementById('chatGPTInput').value = '';
   }
 
+  // DAILY MESSAGE
   function showDailyMessage() {
     const messages = [
       "You exist to serve, nothing more.",
@@ -240,113 +241,165 @@
     document.getElementById('dailyMessage').innerText = messages[Math.floor(Math.random() * messages.length)];
   }
 
-  function showSettings() {
-    // debt no longer editable, so not filled or shown
-    document.getElementById('editProfile').value = document.getElementById('profileInfo').innerText;
-    document.getElementById('editPassword').value = '';
-    document.getElementById('settingsPopup').style.display = 'block';
-
-    // Show Page Builder in Settings only for Dylan
-    if (currentUser.username === 'Alpha Dylan') {
-      document.getElementById('pageBuilder').style.display = 'block';
-      showPageBuilder();
-    } else {
-      document.getElementById('pageBuilder').style.display = 'none';
-      showPage('dashboardView');
-    }
-  }
-
-  function closeSettings() {
-    document.getElementById('settingsPopup').style.display = 'none';
-  }
-
-  function saveSettings() {
-    // Save profile from settings popup
-    document.getElementById('profileInfo').innerText = document.getElementById('editProfile').value;
-    users[currentUser.username].profile = document.getElementById('editProfile').value;
-
-    // Change password if filled
-    const newPass = document.getElementById('editPassword').value;
-    if (newPass.trim().length > 0) {
-      users[currentUser.username].password = newPass;
-      alert("Password changed successfully");
-    }
-
-    closeSettings();
-  }
-
-  function showPage(pageId) {
+  // SHOW PAGE FUNCTION
+  function showPage(id) {
+    // Hide all top-level views
     document.getElementById('dashboardView').style.display = 'none';
     document.getElementById('pageBuilder').style.display = 'none';
 
-    if(pageId === 'dashboardView') {
-      document.getElementById('dashboardView').style.display = 'block';
-    } else if(pageId === 'pageBuilder') {
-      if(currentUser.username === 'Alpha Dylan') {
-        document.getElementById('pageBuilder').style.display = 'block';
-      }
-    }
+    document.getElementById(id).style.display = 'block';
   }
 
+  // SETTINGS POPUP
+  function showSettings() {
+    if (!currentUser) return;
+    document.getElementById('settingsPopup').style.display = 'block';
+    // Load current profile
+    document.getElementById('editProfile').value = localStorage.getItem(`profile_${currentUser.username}`) || 'Obedient sub with growing debt';
+    // Clear password input
+    document.getElementById('editPassword').value = '';
+  }
+  function closeSettings() {
+    document.getElementById('settingsPopup').style.display = 'none';
+  }
+  function saveSettings() {
+    if (!currentUser) return;
+    const profile = document.getElementById('editProfile').value;
+    const newPass = document.getElementById('editPassword').value;
+
+    localStorage.setItem(`profile_${currentUser.username}`, profile);
+    document.getElementById('profileInfo').innerText = profile;
+
+    if (newPass.trim()) {
+      users[currentUser.username].password = newPass;
+      alert('Password changed.');
+    }
+    closeSettings();
+  }
+
+  // PAGE BUILDER
   function showPageBuilder() {
-    if(currentUser.username === 'Alpha Dylan') {
-      document.getElementById('pageBuilder').style.display = 'block';
-      document.getElementById('dashboardView').style.display = 'none';
+    if (currentUser && currentUser.username === 'Alpha Dylan') {
+      showPage('pageBuilder');
+      loadPageBuilder();
     }
   }
-
   function addSection() {
     const container = document.getElementById('editableSections');
     const newSection = document.createElement('div');
-    newSection.className = 'section';
-    newSection.contentEditable = 'true';
+    newSection.classList.add('section');
+    newSection.contentEditable = "true";
     newSection.textContent = 'New editable section';
     container.appendChild(newSection);
   }
-
   function saveChanges(scope) {
-    alert(`Saved changes to ${scope === 'all' ? 'everyone' : currentUser.username}'s view`);
+    const container = document.getElementById('editableSections');
+    const sections = container.querySelectorAll('.section');
+    const contents = [];
+    sections.forEach(sec => contents.push(sec.innerHTML));
+
+    if (scope === 'all') {
+      localStorage.setItem('pageBuilder_all', JSON.stringify(contents));
+      alert('Saved changes for ALL users');
+    } else if (scope === 'current' && currentUser) {
+      localStorage.setItem(`pageBuilder_${currentUser.username}`, JSON.stringify(contents));
+      alert('Saved changes for YOUR account');
+    }
+  }
+  function loadPageBuilder() {
+    let contents = null;
+    if (localStorage.getItem(`pageBuilder_${currentUser.username}`)) {
+      contents = JSON.parse(localStorage.getItem(`pageBuilder_${currentUser.username}`));
+    } else if (localStorage.getItem('pageBuilder_all')) {
+      contents = JSON.parse(localStorage.getItem('pageBuilder_all'));
+    }
+    if (contents) {
+      const container = document.getElementById('editableSections');
+      container.innerHTML = '';
+      contents.forEach(html => {
+        const div = document.createElement('div');
+        div.classList.add('section');
+        div.contentEditable = "true";
+        div.innerHTML = html;
+        container.appendChild(div);
+      });
+    }
   }
 
-  // Custom AI chatbox logic (for all users)
+  // CUSTOM AI CHATBOX (per-user chat history)
+  function loadChat() {
+    if (!currentUser) return;
+    const log = document.getElementById('chatLog');
+    log.innerHTML = '';
+    const history = localStorage.getItem(`chat_${currentUser.username}`);
+    if (history) {
+      const messages = JSON.parse(history);
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.textContent = msg;
+        log.appendChild(div);
+      });
+      log.scrollTop = log.scrollHeight;
+    }
+  }
+  function saveChatMessage(message) {
+    if (!currentUser) return;
+    const key = `chat_${currentUser.username}`;
+    let history = localStorage.getItem(key);
+    let messages = history ? JSON.parse(history) : [];
+    messages.push(message);
+    localStorage.setItem(key, JSON.stringify(messages));
+  }
   function sendChat() {
     const input = document.getElementById('chatInput');
-    if(!input.value.trim()) return;
+    if (!input.value.trim()) return;
     const log = document.getElementById('chatLog');
-    const message = document.createElement('div');
-    message.textContent = `You: ${input.value}`;
-    log.appendChild(message);
+    const userMsg = `You: ${input.value}`;
+    const userDiv = document.createElement('div');
+    userDiv.textContent = userMsg;
+    log.appendChild(userDiv);
     log.scrollTop = log.scrollHeight;
+
+    saveChatMessage(userMsg);
+
+    const userInput = input.value;
     input.value = '';
 
-    // Fake reply from custom AI after delay
+    // Fake AI reply after delay
     setTimeout(() => {
-      const reply = document.createElement('div');
-      reply.textContent = "Custom AI: I'm here for you.";
-      log.appendChild(reply);
+      const replyText = "Custom AI: I'm here for you.";
+      const replyDiv = document.createElement('div');
+      replyDiv.textContent = replyText;
+      log.appendChild(replyDiv);
       log.scrollTop = log.scrollHeight;
+
+      saveChatMessage(replyText);
     }, 1000);
   }
 
-  // ChatGPT box logic - Dylan only (stub)
+  // CHATGPT BOX (Dylan only, simple echo for demo)
   function sendChatGPT() {
     const input = document.getElementById('chatGPTInput');
-    if(!input.value.trim()) return;
+    if (!input.value.trim()) return;
     const log = document.getElementById('chatGPTLog');
-    const message = document.createElement('div');
-    message.textContent = `You: ${input.value}`;
-    log.appendChild(message);
+    const userMsg = `You: ${input.value}`;
+    const userDiv = document.createElement('div');
+    userDiv.textContent = userMsg;
+    log.appendChild(userDiv);
     log.scrollTop = log.scrollHeight;
-    input.value = '';
 
-    // Simulate ChatGPT reply
+    // Simulate ChatGPT reply after delay
     setTimeout(() => {
-      const reply = document.createElement('div');
-      reply.textContent = "ChatGPT: [Simulated reply]";
-      log.appendChild(reply);
+      const replyText = "ChatGPT: Sorry, no backend yet.";
+      const replyDiv = document.createElement('div');
+      replyDiv.textContent = replyText;
+      log.appendChild(replyDiv);
       log.scrollTop = log.scrollHeight;
-    }, 1500);
+    }, 1200);
+
+    input.value = '';
   }
+
 </script>
 
 </body>
